@@ -1,0 +1,20 @@
+
+# OS junk files
+.DS_STORE
+
+# IDE files
+.idea/
+
+# SBT files
+sbt
+sbt-launch.jar
+
+# Compiled files
+target/
+project/build.properties
+project/target
+project/project
+bin/hipci
+bin/example.conf
+vendor/
+logs/

@@ -1,0 +1,34 @@
+!!! init_tp by default:
+!!! Using z3
+Starting z3...
+
+Starting Omega.../usr/local/bin/oc
+
+Entailing lemma lem_12: Valid.
+
+Valid Lemmas : [lem_12:<==>] added to lemma store.
+
+Entail 1: Valid.
+
+Entail 9: Valid.
+
+Entail 10: Fail.(may) cause:UnionR[ 9<n |-  11<=n. LOCS:[63;1] (may-bug), 9<n |-  exists(b_1577:0<=b_1577 & (b_1577+11)<=n). LOCS:[63;0] (may-bug)]
+
+Entail 15: Fail.(must) cause:UnionR[ n=7 |-  n=3+5. LOCS:[83;16] (must-bug), n=7 |-  exists(b_2065:0<=b_2065 & 0<=(5+b_2065) & n=3+b_2065+5). LOCS:[83;0] (must-bug)]
+
+Entail 17: Fail.(may) cause: (((r1=x & a_2205=0) | (1<=a_2205 & x!=null))) &
+ (((r_2233=r1 & a_2221=0) | (1<=a_2221 & r1!=null))) &
+ (((p=r_2233 & b_2222=0) | (1<=b_2222 & r_2233!=null))) |-  r_2233=p. LOCS:[0;1;91] (may-bug)
+
+
+Stop z3... 1185 invocations Stop Omega... 368 invocations
+SAT Count   : 586
+SAT % Hit   : 93.17%
+IMPLY Count : 771
+IMPLY % Hit : 93.64%
+Time(cache overhead) : 0.198535 (seconds)
+
+!!! log(small):(5.277401,2042)
+Total verification time: 2.057342 second(s)
+	Time spent in main process: 1.4845 second(s)
+	Time spent in child processes: 0.572842 second(s)
