@@ -1,6 +1,6 @@
 package scala.hipci
 
-import scala.hipci.common.{ConfigSchema, TestPool, Diff3, GenTest}
+import scala.hipci.common.{ConfigSchema, GenTest}
 
 /**
  * Package-wide constants

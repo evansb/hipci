@@ -1,6 +1,6 @@
 package scala.hipci.executor
 
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{ActorSystem}
 import akka.pattern._
 import akka.util.Timeout
 import org.scalatest.FlatSpec
@@ -8,12 +8,11 @@ import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 
 import scala.collection.immutable.Map
-import scala.concurrent.{Await, Promise}
+import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.hipci.common.{SleekTest, HipTest, TestPool, ConfigSchema}
+import scala.hipci.common.{HipTest, TestPool, ConfigSchema}
 import scala.hipci.request._
-import scala.hipci.response.TicketAssigned
-import scala.hipci.util.OutputParser
+import scala.hipci.response.{TestComplete, TestResult, TicketAssigned}
 
 /**
  * Test the functionality of TestExecutor
@@ -27,7 +26,7 @@ class DaemonSpec extends FlatSpec {
   implicit val timeout = Timeout(1.seconds)
   val path = System.getenv().get("PATH")
 
-  "Daemon" should "assign ticket for test request" in {
+  "Daemon" should "assign ticket for test request and get the result later" in {
     val config = ConfigSchema(
       projectDirectory = "vendor",
       hipDirectory = "../fixtures/hip",
@@ -40,8 +39,12 @@ class DaemonSpec extends FlatSpec {
             arguments = List.empty,
             specs = Map("append" -> true)
           )))))
-    whenReady (subject ? SubmitTest(config)) {
-      _.isInstanceOf[TicketAssigned] shouldBe true
+    val result = Await.result(subject ? SubmitTest(config), 1 seconds).asInstanceOf[TestResult]
+    result.isInstanceOf[TicketAssigned] shouldBe true
+    Thread.sleep(1000)
+    val ticket = result.asInstanceOf[TicketAssigned].ticket
+    whenReady (subject ? CheckTicket(ticket)) {
+      case (n) => n.isInstanceOf[TestComplete] shouldBe true
     }
   }
 }

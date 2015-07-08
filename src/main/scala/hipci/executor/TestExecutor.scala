@@ -9,7 +9,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise, ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.hipci.request.{SubmitTest, ParseSleekOutput, ParseHipOutput}
-import scala.hipci.response.{ParsedSleekOutput, ParsedHipOutput}
+import scala.hipci.response.{TestComplete, TestResult, ParsedSleekOutput, ParsedHipOutput}
 import scala.hipci.util.{OutputParser, OutputAnalyzer}
 import scala.sys.process.Process
 
@@ -89,8 +89,8 @@ class TestExecutor extends Component {
    * @param config The config schema
    * @return Output of the execution
    */
-  private def executeConfig(config: ConfigSchema) = {
-    val promise = Promise[ConfigSchema]
+  private def executeConfig(config: ConfigSchema) : Promise[TestResult] = {
+    val promise = Promise[TestResult]
     val init = Future { Map.empty[String, TestPool[T]] }
     config.tests.foldLeft(init)({ (acc, entry) =>
       val name = entry._1
@@ -105,9 +105,10 @@ class TestExecutor extends Component {
           m + ((name, TestPool(result)))
       }
     }).andThen({
-      case Success(pool) => promise.success(config.copy(tests = pool))
+      case Success(pool) => promise.success(TestComplete(System.currentTimeMillis, config.copy(tests = pool)))
       case Failure(exc) => throw exc
     })
+    promise
   }
 
   override def receive = {

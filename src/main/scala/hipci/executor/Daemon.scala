@@ -1,9 +1,7 @@
 package scala.hipci.executor
 
-import java.math.BigInteger
-import java.security.SecureRandom
 import scala.collection.mutable
-import scala.concurrent.{Await, ExecutionContext, Promise, Future}
+import scala.concurrent.{Await, ExecutionContext, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import akka.actor.Props
@@ -25,24 +23,18 @@ object Daemon extends ComponentDescriptor {
 class Daemon extends Component {
   protected val descriptor: ComponentDescriptor = Daemon
   private val cache: mutable.HashMap[String, (Long, Promise[TestResult])] = mutable.HashMap.empty
-  private val random = new SecureRandom()
-
-  private def createTicket(): String = {
-    new BigInteger(130, random).toString(32)
-  }
 
   private def submitTest(config: ConfigSchema)(implicit executionContext: ExecutionContext) = {
     val testExecutor = loadComponent(TestExecutor)
-    val ticket = createTicket()
-    val promise = Promise[TestResult]
-    cache(ticket) = (System.currentTimeMillis, promise)
-    (testExecutor ? SubmitTest(config)) map {
-      case config =>
-        promise.success(TestComplete(System.currentTimeMillis, config.asInstanceOf[ConfigSchema]))
-    } recover {
-      case e => promise.failure(e)
+    val ticket = config.hashCode().toString
+    cache.get(ticket) match {
+      case None =>
+        val promise = Await.result(testExecutor ? SubmitTest(config), 10 milliseconds)
+          .asInstanceOf[Promise[TestResult]]
+        cache(ticket) = (System.currentTimeMillis, promise)
+        TicketAssigned(ticket)
+      case Some(_) => checkTicket(ticket)
     }
-    TicketAssigned(ticket)
   }
 
   private def checkTicket(ticket: String) = {

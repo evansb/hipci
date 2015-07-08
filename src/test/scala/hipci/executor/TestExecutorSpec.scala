@@ -12,6 +12,7 @@ import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration._
 import scala.hipci.common.{SleekTest, HipTest, TestPool, ConfigSchema}
 import scala.hipci.request._
+import scala.hipci.response.TestComplete
 
 /**
  * Test the functionality of TestExecutor
@@ -44,9 +45,9 @@ class TestExecutorSpec extends FlatSpec {
             specs = Map(1 -> false, 2 -> true))))))
     whenReady(subject ? SubmitTest(config)) {
       _ match {
-        case promise: Promise[ConfigSchema] =>
-          Await.result(promise.future, 2 seconds) shouldEqual config.tests
-        case _ => false shouldEqual true
+        case promise: Promise[_] =>
+          Await.result(promise.future, 2 seconds).asInstanceOf[TestComplete].result shouldEqual config
+        case _ => assert(false)
       }
     }
   }
