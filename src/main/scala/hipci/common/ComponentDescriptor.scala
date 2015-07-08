@@ -1,6 +1,6 @@
 package scala.hipci.common
 
-import akka.actor.{ActorRef, Props}
+import akka.actor.{ActorSystem, ActorRef, Props}
 import scala.collection.mutable
 
 /**
@@ -28,4 +28,15 @@ abstract class ComponentDescriptor {
    * Mappings between components and its ActorRef
    */
   val actors : mutable.Map[String, ActorRef] = mutable.Map.empty
+
+  /**
+   * Register this descriptor to a system and get its actor ref
+   * @param system
+   */
+  def register(system: ActorSystem) : ActorRef = {
+    this.subComponents.foreach((s) => {
+      actors(s.name) = s.register(system)
+    })
+    system.actorOf(props)
+  }
 }

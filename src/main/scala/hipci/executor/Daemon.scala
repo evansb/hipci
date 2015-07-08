@@ -3,12 +3,14 @@ package scala.hipci.executor
 import java.math.BigInteger
 import java.security.SecureRandom
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Promise, Future}
+import scala.concurrent.{Await, ExecutionContext, Promise, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 import akka.actor.Props
+import akka.pattern._
 import scala.hipci.common.{ConfigSchema, ComponentDescriptor, Component}
-import scala.hipci.request.SubmitTest
-import scala.hipci.response.{TestResult, CompilationError, TestComplete}
+import scala.hipci.request.{CheckTicket, SubmitTest}
+import scala.hipci.response._
 
 /**
  * Receives test submission and assign tickets.
@@ -17,12 +19,12 @@ import scala.hipci.response.{TestResult, CompilationError, TestComplete}
 object Daemon extends ComponentDescriptor {
   val name = "Daemon"
   val props = Props[Daemon]
-  val subComponents = List.empty
+  val subComponents = List(TestExecutor)
 }
 
 class Daemon extends Component {
   protected val descriptor: ComponentDescriptor = Daemon
-  private val cache: mutable.HashMap[String, Promise[TestResult]] = mutable.HashMap.empty
+  private val cache: mutable.HashMap[String, (Long, Promise[TestResult])] = mutable.HashMap.empty
   private val random = new SecureRandom()
 
   private def createTicket(): String = {
@@ -30,17 +32,34 @@ class Daemon extends Component {
   }
 
   private def submitTest(config: ConfigSchema)(implicit executionContext: ExecutionContext) = {
+    val testExecutor = loadComponent(TestExecutor)
     val ticket = createTicket()
     val promise = Promise[TestResult]
-    val future = Future {
-      promise success CompilationError("error")
+    cache(ticket) = (System.currentTimeMillis, promise)
+    (testExecutor ? SubmitTest(config)) map {
+      case config =>
+        promise.success(TestComplete(System.currentTimeMillis, config.asInstanceOf[ConfigSchema]))
+    } recover {
+      case e => promise.failure(e)
     }
-    cache(ticket) = promise
-    ticket
+    TicketAssigned(ticket)
+  }
+
+  private def checkTicket(ticket: String) = {
+    cache.get(ticket) match {
+      case None => TicketNotFound(ticket)
+      case Some((_, p)) =>
+        if (p.isCompleted) {
+          Await.result(p.future, 1 seconds)
+        } else {
+          TestInQueue
+        }
+    }
   }
 
   override def receive = {
     case SubmitTest(config: ConfigSchema) => sender ! submitTest(config)
+    case CheckTicket(ticket: String) => sender ! checkTicket(ticket)
     case other => super.receive(other)
   }
 }

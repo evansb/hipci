@@ -13,7 +13,7 @@ object CLIApp extends CLIComponentDescriptor with App {
   val name = "Main"
   val props = Props[CLIApp]
   val subComponents = List(CommandParser, CommandDispatcher)
-  val system = ActorSystem(constant.AppName)
+  private val system = ActorSystem(constant.AppName)
 
   System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "false")
   System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO")
@@ -26,7 +26,7 @@ private class CLIApp extends CLIComponent {
 
   override def receive = {
     case (system, args) =>
-      registerComponent(system.asInstanceOf[ActorSystem], CLIApp)
+      descriptor.register(system.asInstanceOf[ActorSystem])
       val commandParser = loadComponent(CommandParser)
       val commandDispatcher = loadComponent(CommandDispatcher)
       val wrappedArgs = request.Arguments(args.asInstanceOf[Array[String]])

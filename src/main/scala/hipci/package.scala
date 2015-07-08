@@ -50,7 +50,7 @@ package object request {
   case class FilterSleekOutput(output: String, entailment: Set[Int])
   case class AnalyzeOutput[K,V](output1: GenTest[K,V], output2: GenTest[K,V], reference: GenTest[K,V])
   case class SubmitTest(config: ConfigSchema)
-  case class GetTicketStatus(ticket: String)
+  case class CheckTicket(ticket: String)
 }
 
 /**
@@ -63,6 +63,9 @@ package object response {
   case class FilteredSleekOutput(output: Map[Int, String])
 
   abstract class TestResult()
+  case object TestInQueue extends TestResult()
+  case class TicketAssigned(ticket: String) extends TestResult()
+  case class TicketNotFound(ticket: String) extends TestResult()
   case class TestComplete(duration: Long, result: ConfigSchema) extends TestResult()
   case class CompilationError(error: String) extends TestResult()
   case class RuntimeError(error: String) extends TestResult()

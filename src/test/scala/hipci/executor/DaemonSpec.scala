@@ -1,6 +1,6 @@
 package scala.hipci.executor
 
-import akka.actor.ActorSystem
+import akka.actor.{ActorSystem, Props}
 import akka.pattern._
 import akka.util.Timeout
 import org.scalatest.FlatSpec
@@ -12,20 +12,22 @@ import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration._
 import scala.hipci.common.{SleekTest, HipTest, TestPool, ConfigSchema}
 import scala.hipci.request._
+import scala.hipci.response.TicketAssigned
+import scala.hipci.util.OutputParser
 
 /**
  * Test the functionality of TestExecutor
  *
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
-class TestExecutorSpec extends FlatSpec {
+class DaemonSpec extends FlatSpec {
   val system = ActorSystem("hipci-test")
-  TestExecutor.register(system)
-  val subject = system.actorOf(TestExecutor.props, "TestExecutor")
+  Daemon.register(system)
+  val subject = system.actorOf(Daemon.props, "Daemon")
   implicit val timeout = Timeout(1.seconds)
   val path = System.getenv().get("PATH")
 
-  "TestExecutor" should "execute simple HIP/SLEEK test suite" in {
+  "Daemon" should "assign ticket for test request" in {
     val config = ConfigSchema(
       projectDirectory = "vendor",
       hipDirectory = "../fixtures/hip",
@@ -37,17 +39,9 @@ class TestExecutorSpec extends FlatSpec {
             path = "test_hip.ss",
             arguments = List.empty,
             specs = Map("append" -> true)
-          ),
-          SleekTest(
-            path = "test_sleek.slk",
-            arguments = List.empty,
-            specs = Map(1 -> false, 2 -> true))))))
-    whenReady(subject ? SubmitTest(config)) {
-      _ match {
-        case promise: Promise[ConfigSchema] =>
-          Await.result(promise.future, 2 seconds) shouldEqual config.tests
-        case _ => false shouldEqual true
-      }
+          )))))
+    whenReady (subject ? SubmitTest(config)) {
+      _.isInstanceOf[TicketAssigned] shouldBe true
     }
   }
 }
