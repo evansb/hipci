@@ -42,7 +42,7 @@ package object constant {
 package object request {
   case class Arguments(arguments : Seq[String])
   case class Config(config: com.typesafe.config.Config)
-  case class Call(method: String)
+  case object ShowUsage
   case class Terminate(exitCode: Int)
   case class ParseHipOutput(output: String)
   case class ParseSleekOutput(output: String)
@@ -63,7 +63,7 @@ package object response {
   case class FilteredSleekOutput(output: Map[Int, String])
 
   abstract class TestResult()
-  case object TestInQueue extends TestResult()
+  case class TestInQueue(ticket: String, since: Long) extends TestResult()
   case class TicketAssigned(ticket: String) extends TestResult()
   case class TicketNotFound(ticket: String) extends TestResult()
   case class TestComplete(duration: Long, result: ConfigSchema) extends TestResult()

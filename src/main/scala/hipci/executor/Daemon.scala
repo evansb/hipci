@@ -4,7 +4,7 @@ import scala.collection.mutable
 import scala.concurrent.{Await, ExecutionContext, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import akka.actor.Props
+import akka.actor.{ActorSystem, Props}
 import akka.pattern._
 import scala.hipci.common.{ConfigSchema, ComponentDescriptor, Component}
 import scala.hipci.request.{CheckTicket, SubmitTest}
@@ -18,6 +18,13 @@ object Daemon extends ComponentDescriptor {
   val name = "Daemon"
   val props = Props[Daemon]
   val subComponents = List(TestExecutor)
+
+  private var system : ActorSystem = null
+
+  def start() = {
+    system = ActorSystem("hipcid")
+
+  }
 }
 
 class Daemon extends Component {
@@ -40,11 +47,11 @@ class Daemon extends Component {
   private def checkTicket(ticket: String) = {
     cache.get(ticket) match {
       case None => TicketNotFound(ticket)
-      case Some((_, p)) =>
-        if (p.isCompleted) {
-          Await.result(p.future, 1 seconds)
+      case Some((since, promise)) =>
+        if (promise.isCompleted) {
+          Await.result(promise.future, 1 seconds)
         } else {
-          TestInQueue
+          TestInQueue(ticket, since)
         }
     }
   }

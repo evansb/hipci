@@ -81,7 +81,7 @@ class CommandParser extends CLIComponent {
 
   override def receive = {
     case request.Arguments(args) => sender ! parser.parse(args, EmptyCommand)
-    case request.Call("showUsage") => sender ! parser.showUsage
+    case request.ShowUsage => sender ! parser.usage
     case other => super.receive(other)
   }
 }
