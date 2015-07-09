@@ -1,7 +1,6 @@
 package edu.nus.hipci.daemon
 
 import java.util.concurrent.TimeoutException
-import scala.util.{Failure, Success}
 import scala.collection.mutable
 import scala.concurrent.{Await, ExecutionContext, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
