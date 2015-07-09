@@ -75,11 +75,9 @@ class CommandDispatcher extends CLIComponent {
         logger.good(s"Comparing $revision1 and $revision2")
         Terminate(0)
       case StartCommand =>
-        Daemon.start()
-        KeepAlive
+        KeepAlive(Daemon.start())
       case StopCommand =>
-        Daemon.stop()
-        logger.bad(s"hipcid stopped successfuly")
+        Daemon.stop(context)
         Terminate(0)
       case EmptyCommand =>
         Terminate(1)

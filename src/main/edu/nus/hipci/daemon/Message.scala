@@ -1,5 +1,6 @@
 package edu.nus.hipci.daemon
 
+import akka.actor.ActorRef
 import edu.nus.hipci.common.ConfigSchema
 
 /**
@@ -10,7 +11,9 @@ object request {
   sealed abstract class Request
   case class SubmitTest(config: ConfigSchema) extends Request
   case class CheckTicket(ticket: String) extends Request
-  case object Ping
+  case class Introduce(actorRef: ActorRef) extends Request
+  case object StopDaemon extends Request
+  case object Ping extends Request
 }
 
 object response {

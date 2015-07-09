@@ -1,7 +1,7 @@
 package edu.nus.hipci.cli
 
 import scala.language.existentials
-import akka.actor.ActorSystem
+import akka.actor._
 
 import edu.nus.hipci.common.Diff3
 
@@ -16,7 +16,7 @@ object request {
   case class Config(config: com.typesafe.config.Config) extends Request
   case object ShowUsage extends Request
   case class Terminate(exitCode: Int) extends Request
-  case object KeepAlive extends Request
+  case class KeepAlive(waitFor: ActorRef) extends Request
   case class ReportDiff2String(diff3: Diff3[_,_]) extends Request
   case class ReportDiff3String(diff3: Diff3[_,_]) extends Request
 }

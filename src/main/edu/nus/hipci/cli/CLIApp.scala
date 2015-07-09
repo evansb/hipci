@@ -7,6 +7,7 @@ import response.ParsedArguments
 
 import edu.nus.hipci._
 import edu.nus.hipci.daemon.Daemon
+import edu.nus.hipci.daemon.request.Introduce
 import edu.nus.hipci.cli.request.InitCLI
 
 /**
@@ -37,7 +38,7 @@ private class CLIApp extends CLIComponent {
       val command = Await.result(commandParser? request, timeout.duration).asInstanceOf[ParsedArguments]
       commandDispatcher ! command
     case Terminate(ec) => System.exit(ec)
-    case KeepAlive => ()
+    case KeepAlive(waitFor) => waitFor ! Introduce(self)
     case other => super.receive(other)
   }
 }
