@@ -1,6 +1,7 @@
 package edu.nus.hipci.cli
 
-import edu.nus.hipci.common.Diff3
+import edu.nus.hipci
+import edu.nus.hipci.common.{ConfigSchema, Diff3}
 
 import scala.language.existentials
 import akka.actor.Props
@@ -41,12 +42,14 @@ private class TestReporter extends CLIComponent {
     def rowSeparator(colSizes: Seq[Int]) = colSizes map { "-" * _ } mkString("+", "+", "+")
   }
 
-  private def makeTable(isDiff2: Boolean, diffSpec: List[(Any, Option[Any], Option[Any], Option[Any])]) = {
+  private def makeTable(row: Int, diffSpec: List[(Any, Option[Any], Option[Any], Option[Any])]) = {
     diffSpec.foldRight(List.empty[List[String]])({ (x, acc) =>
       x match {
         case (spec, x, y, z) =>
           val render = (x: Option[_]) => x.map(_.toString).getOrElse("Not defined")
-          if (isDiff2) {
+          if (row == 1) {
+            List(spec.toString, render(x)) :: acc
+          } else if (row == 2) {
             List(spec.toString, render(x), render(z)) :: acc
           } else {
             List(spec.toString, render(x), render(y), render(z)) :: acc
@@ -55,13 +58,40 @@ private class TestReporter extends CLIComponent {
     })
   }
 
+  private def render4(x : (Any, Option[Any], Option[Any], Option[Any])) = {
+    val f = (z: Option[Any]) =>
+      z.map((z) =>
+        if (x.isInstanceOf[Int]) {
+          if (z.asInstanceOf[Boolean]) { hipci.SleekValid } else { hipci.SleekInvalid }
+        } else {
+          if (z.asInstanceOf[Boolean]) { hipci.HipSuccess } else { hipci.HipFail }
+        })
+    x.copy(_2 = f(x._2), _3 = f(x._3), _4 = f(x._4))
+  }
+
+  private def singleString(config: ConfigSchema) = {
+    val builder = StringBuilder.newBuilder
+    config.tests.foreach({
+      case (suite, pool) =>
+        val header = List("spec", "outcome")
+        pool.foreach({ g =>
+          builder ++= s"${g.path} ${g.arguments.mkString(" ")}\n"
+          val body =
+            g.specs.toList.map({ case (x, y) => render4((x, Some(y), None, None)) })
+          builder ++= Tabulator.format(header::makeTable(1, body))
+          builder ++= "\n\n"
+        })
+    })
+    builder.toString
+  }
+
   private def diff2String(diff: Diff3[_,_]) = {
     val builder = StringBuilder.newBuilder
     val diffSpec = diff.specs.filter({ case (_,x,_,y) => !x.equals(y) })
     if (!diffSpec.isEmpty) {
-      builder ++= s"Outcome of ${diff.output1} and ${diff.reference} are different"
+      builder ++= s"Outcome of ${diff.output1} and ${diff.reference} are different\n"
       val header = List("spec", diff.output1, diff.output2)
-      val content = makeTable(true, diffSpec)
+      val content = makeTable(2, diffSpec)
       builder ++= Tabulator.format(header::content)
     }
     builder.toString
@@ -73,7 +103,7 @@ private class TestReporter extends CLIComponent {
     if (!diffSpec.isEmpty) {
       builder ++= s"Outcome of ${diff.output1} and ${diff.reference} are different"
       val header = List("spec", diff.output1, diff.output2, "reference:" + diff.reference)
-      val content = makeTable(false, diffSpec)
+      val content = makeTable(3, diffSpec)
       builder ++= Tabulator.format(header::content)
     }
     builder.toString
@@ -81,6 +111,7 @@ private class TestReporter extends CLIComponent {
 
   import request._
   override def receive = {
+    case ReportSingleString(config) => sender ! singleString(config)
     case ReportDiff2String(diff3) => sender ! diff2String(diff3)
     case ReportDiff3String(diff3) => sender ! diff3String(diff3)
     case other => super.receive(other)

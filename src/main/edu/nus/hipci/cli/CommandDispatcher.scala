@@ -20,7 +20,7 @@ import edu.nus.hipci.daemon.response._
  */
 object CommandDispatcher extends CLIComponentDescriptor {
   val name = "CommandDispatcher"
-  val subComponents = List(ConfigSchemaFactory, CommandParser, Daemon)
+  val subComponents = List(ConfigSchemaFactory, CommandParser, Daemon, TestReporter)
   val props = Props[CommandDispatcher]
 }
 
@@ -58,7 +58,10 @@ class CommandDispatcher extends CLIComponent {
           val result = Await.result(daemon ? SubmitTest(configSchema), timeout.duration).asInstanceOf[TestResult]
           result match {
             case TestComplete(completionTime, config) =>
-              logger.good(s"Test completed")
+              logger.good(s"Test completed in ${ completionTime / 1000 } seconds.")
+              val reporter = loadComponent(TestReporter)
+              val report = Await.result(reporter ? ReportSingleString(config), timeout.duration).asInstanceOf[String]
+              Console.out.println(report)
             case TestInQueue(ticket, since) =>
               val delta = Duration.fromNanos(System.currentTimeMillis - since)
               logger.good(s"Ticket ${ticket} in queue since ${ delta } ago")
