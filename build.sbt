@@ -1,5 +1,3 @@
-import java.nio.file.Paths
-
 import AssemblyPlugin._
 
 lazy val commonSettings = Seq(
@@ -36,7 +34,7 @@ lazy val hipci = (project in file(".")).
     libraryDependencies ++= Seq(scalaTest, akkaActor, akkaRemote, typesafeConfig, log4s, scopt, config, scalaRainbow),
     scalaSource in Compile := baseDirectory.value / "src/main",
     scalaSource in Test := baseDirectory.value / "src/test",
-    scalacOptions += "-deprecation",
+    scalacOptions ++= Seq("-deprecation", "-feature"),
     mainClass in (Compile, run) := Some("scala.hipci.cli.CLIApp"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript = Some(defaultShellScript)),
     assemblyJarName in assembly := "hipci",
