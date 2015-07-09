@@ -80,7 +80,7 @@ class TestExecutor extends Component {
       future = future map {
         case oldSet =>
           val output = Await.result(Future {
-            logger.good(cmd.mkString(" "))
+            logger.good(s"Running ${ cmd.tail.mkString(" ") }")
             Process(cmd, Some(baseDir.toFile), "PATH" -> sysPath).!!
           }, timeout)
           val r = parseOutput(output, t)

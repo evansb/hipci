@@ -41,7 +41,7 @@ class DaemonSpec extends FlatSpec {
           )))))
     val result = Await.result(subject ? SubmitTest(config), 1 seconds).asInstanceOf[TestResult]
     result.isInstanceOf[TicketAssigned] shouldBe true
-    Thread.sleep(1000)
+    Thread.sleep(2000)
     val ticket = result.asInstanceOf[TicketAssigned].ticket
     whenReady (subject ? CheckTicket(ticket)) {
       case (n) => n.isInstanceOf[TestComplete] shouldBe true

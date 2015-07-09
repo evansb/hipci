@@ -41,6 +41,7 @@ lazy val hipci = (project in file(".")).
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript = Some(defaultShellScript)),
     assemblyJarName in assembly := "hipci",
     test in assembly := {},
+    parallelExecution in Test := false,
     mainClass in assembly := Some("scala.hipci.cli.CLIApp"),
     assemblyOutputPath in assembly := baseDirectory.value / "bin" / "hipci"
   )

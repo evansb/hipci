@@ -16,29 +16,13 @@ object CLIApp extends CLIComponentDescriptor with App {
   val name = "Main"
   val props = Props[CLIApp]
   val subComponents = List(CommandParser, CommandDispatcher)
+
   if (args.length == 1 && args(0).equals("start")) {
     Daemon.start()
   } else {
-    val system = ActorSystem(constant.AppName,
-      ConfigFactory.parseString(
-        """
-          |akka {
-          |  actor {
-          |    provider = "akka.remote.RemoteActorRefProvider"
-          |  }
-          |  remote {
-          |    netty.tcp {
-          |      hostname = "127.0.0.1"
-          |      port = 2553
-          |    }
-          |    log-sent-messages = on
-          |    log-received-messages = on
-          |  }
-          |}
-        """.stripMargin))
+    val system = ActorSystem(constant.AppName, Daemon.defaultClientConfig)
     System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "false")
     System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO")
-
     system.actorOf(Props[CLIApp], "Main") ! (system,args)
   }
 }

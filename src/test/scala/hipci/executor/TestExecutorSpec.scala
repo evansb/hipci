@@ -20,10 +20,10 @@ import scala.hipci.response.TestComplete
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 class TestExecutorSpec extends FlatSpec {
-  val system = ActorSystem("hipci-test")
+  val system = ActorSystem("hipci-test", Daemon.defaultClientConfig)
   TestExecutor.register(system)
   val subject = system.actorOf(TestExecutor.props, "TestExecutor")
-  implicit val timeout = Timeout(1.seconds)
+  implicit val timeout = Timeout(2.seconds)
   val path = System.getenv().get("PATH")
 
   "TestExecutor" should "execute simple HIP/SLEEK test suite" in {

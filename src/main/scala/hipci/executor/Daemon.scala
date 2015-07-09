@@ -23,7 +23,7 @@ object Daemon extends ComponentDescriptor {
   val props = Props[Daemon]
   val subComponents = List(TestExecutor)
 
-  private val DefaultConfig : Config = ConfigFactory.parseString(
+  val defaultConfig = ConfigFactory.parseString(
   """
     | akka {
     |   actor {
@@ -38,12 +38,28 @@ object Daemon extends ComponentDescriptor {
     |    log-received-messages = on
     |   }
     | }
-  """.stripMargin
-  )
+  """.stripMargin)
+
+  val defaultClientConfig = ConfigFactory.parseString(
+    """
+      | akka {
+      |  actor {
+      |    provider = "akka.remote.RemoteActorRefProvider"
+      |  }
+      |  remote {
+      |    netty.tcp {
+      |      hostname = "127.0.0.1"
+      |      port = 2553
+      |    }
+      |    log-sent-messages = on
+      |    log-received-messages = on
+      |  }
+      |}
+    """.stripMargin)
 
   def start() = {
     try {
-      val system = ActorSystem("hipcid", DefaultConfig)
+      val system = ActorSystem("hipcid", defaultConfig)
       Daemon.register(system)
       system.actorOf(Daemon.props, "Daemon")
     } catch {
