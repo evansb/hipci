@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise, ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.hipci.cli.Logger
 import scala.hipci.request.{SubmitTest, ParseSleekOutput, ParseHipOutput}
 import scala.hipci.response.{TestComplete, TestResult, ParsedSleekOutput, ParsedHipOutput}
 import scala.hipci.util.{OutputParser, OutputAnalyzer}
@@ -30,6 +31,9 @@ object TestExecutor extends ComponentDescriptor {
 class TestExecutor extends Component {
   protected val descriptor = TestExecutor
   type T = GenTest[_,_]
+
+  protected val logger = Logger("")
+
   /**
    * Command name to execute.
    */
@@ -68,6 +72,7 @@ class TestExecutor extends Component {
                         (implicit executionContext: ExecutionContext) = {
     var future = Future{ Set.empty[T] }
     val sysPath = baseDir.toAbsolutePath.toString + ":" + sys.env("PATH")
+    logger.good(s"Suite ${name}")
     pool.foreach((t) => {
       val path = (if (t.isInstanceOf[HipTest]) { hipDir } else { sleekDir }).resolve(Paths.get(name, t.path))
       val command = baseDir.resolve(getCommand(t)).toAbsolutePath.toString
@@ -75,6 +80,7 @@ class TestExecutor extends Component {
       future = future map {
         case oldSet =>
           val output = Await.result(Future {
+            logger.good(cmd.mkString(" "))
             Process(cmd, Some(baseDir.toFile), "PATH" -> sysPath).!!
           }, timeout)
           val r = parseOutput(output, t)
@@ -106,7 +112,7 @@ class TestExecutor extends Component {
       }
     }).andThen({
       case Success(pool) => promise.success(TestComplete(System.currentTimeMillis, config.copy(tests = pool)))
-      case Failure(exc) => throw exc
+      case Failure(exc) => promise.failure(exc)
     })
     promise
   }

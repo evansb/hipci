@@ -1,13 +1,14 @@
 package scala.hipci.cli
 
 import java.nio.file.Paths
+import java.util.concurrent.Executors
 
 import scala.concurrent.duration.Duration
 import scala.hipci.executor.Daemon
 import scala.hipci.request.SubmitTest
 import scala.hipci.response.{TicketAssigned, TestInQueue, TestComplete, TestResult}
 import scala.util.{Try, Failure, Success}
-import scala.concurrent.Await
+import scala.concurrent.{ExecutionContext, Future, Await}
 import akka.actor.Props
 import akka.pattern.ask
 import com.typesafe.config.ConfigFactory
@@ -29,7 +30,7 @@ class CommandDispatcher extends CLIComponent {
   val descriptor = CommandDispatcher
   def props() = Props[CommandDispatcher]
 
-  protected def dispatch(command: Command) = {
+  protected def dispatch(command: Command) : Option[request.Terminate] = {
     val configSchemaFactory = loadComponent(ConfigSchemaFactory)
     val commandParser = loadComponent(CommandParser)
     command match {
@@ -54,11 +55,11 @@ class CommandDispatcher extends CLIComponent {
           lazy val numberOfTest = configSchema.tests.size
           lazy val totalNumberOfFiles = configSchema.tests.foldLeft(0)({(acc, pair) => acc + pair._2.size })
           logger.good(s"Found $numberOfTest suites ($totalNumberOfFiles files)")
-          val daemon = loadComponent(Daemon)
+          val daemon = Daemon.getDaemon(context)
           val result = Await.result(daemon ? SubmitTest(configSchema), timeout.duration).asInstanceOf[TestResult]
           result match {
             case TestComplete(completionTime, config) =>
-              logger.good(s"Test completed in ${completionTime / 1000.0}} seconds")
+              logger.good(s"Test completed")
             case TestInQueue(ticket, since) =>
               val delta = Duration.fromNanos(System.currentTimeMillis - since)
               logger.good(s"Ticket ${ticket} in queue since ${ delta } ago")
@@ -66,11 +67,22 @@ class CommandDispatcher extends CLIComponent {
               logger.good(s"Ticket ${ticket} assigned. Run hipci status to check")
           }
         }
+        Some(request.Terminate(0))
       case HelpCommand =>
         Console.out.println(Await.result(commandParser ? request.ShowUsage, timeout.duration).asInstanceOf[String])
+        Some(request.Terminate(0))
       case DiffCommand((revision1, revision2)) =>
         logger.good(s"Comparing $revision1 and $revision2")
+        Some(request.Terminate(0))
+      case StartCommand =>
+        Daemon.start()
+        None
+      case StopCommand =>
+        Daemon.stop()
+        logger.bad(s"hipcid stopped successfuly")
+        Some(request.Terminate(0))
       case EmptyCommand =>
+        Some(request.Terminate(1))
     }
   }
 

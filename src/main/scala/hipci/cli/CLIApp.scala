@@ -1,8 +1,11 @@
 package scala.hipci.cli
 
+import com.typesafe.config.ConfigFactory
+
 import scala.concurrent.{Future, Await}
 import akka.actor.{ActorSystem, Props}
 import akka.pattern._
+import scala.hipci.executor.Daemon
 import scala.hipci.{constant, request}
 
 /**
@@ -13,12 +16,31 @@ object CLIApp extends CLIComponentDescriptor with App {
   val name = "Main"
   val props = Props[CLIApp]
   val subComponents = List(CommandParser, CommandDispatcher)
-  private val system = ActorSystem(constant.AppName)
+  if (args.length == 1 && args(0).equals("start")) {
+    Daemon.start()
+  } else {
+    val system = ActorSystem(constant.AppName,
+      ConfigFactory.parseString(
+        """
+          |akka {
+          |  actor {
+          |    provider = "akka.remote.RemoteActorRefProvider"
+          |  }
+          |  remote {
+          |    netty.tcp {
+          |      hostname = "127.0.0.1"
+          |      port = 2553
+          |    }
+          |    log-sent-messages = on
+          |    log-received-messages = on
+          |  }
+          |}
+        """.stripMargin))
+    System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "false")
+    System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO")
 
-  System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "false")
-  System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO")
-
-  system.actorOf(Props[CLIApp], "Main") ! (system, args)
+    system.actorOf(Props[CLIApp], "Main") ! (system,args)
+  }
 }
 
 private class CLIApp extends CLIComponent {
@@ -31,10 +53,11 @@ private class CLIApp extends CLIComponent {
       val commandDispatcher = loadComponent(CommandDispatcher)
       val wrappedArgs = request.Arguments(args.asInstanceOf[Array[String]])
       val command = Await.result(commandParser?wrappedArgs, timeout.duration).asInstanceOf[Option[Command]]
-      Await.result(commandDispatcher?command, timeout.duration)
-
-      import context._
-      Future { context.self ! request.Terminate(0) } andThen { case _ => System.exit(0) }
+      val exitCode = Await.result(commandDispatcher?command, timeout.duration).asInstanceOf[Option[request.Terminate]]
+      exitCode match {
+        case Some(request.Terminate(ec)) => System.exit(ec)
+        case _ => ()
+      }
     case other => super.receive(other)
   }
 }

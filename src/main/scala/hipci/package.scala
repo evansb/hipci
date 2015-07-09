@@ -1,6 +1,6 @@
 package scala.hipci
 
-import scala.hipci.common.{ConfigSchema, GenTest}
+import scala.hipci.common.{Diff3, ConfigSchema, GenTest}
 
 /**
  * Package-wide constants
@@ -51,6 +51,9 @@ package object request {
   case class AnalyzeOutput[K,V](output1: GenTest[K,V], output2: GenTest[K,V], reference: GenTest[K,V])
   case class SubmitTest(config: ConfigSchema)
   case class CheckTicket(ticket: String)
+
+  case class ReportDiff2String(diff3: Diff3[_,_])
+  case class ReportDiff3String(diff3: Diff3[_,_])
 }
 
 /**

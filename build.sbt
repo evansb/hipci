@@ -14,6 +14,8 @@ lazy val scalaTest = "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
 
 lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.4-SNAPSHOT"
 
+lazy val akkaRemote = "com.typesafe.akka" %% "akka-remote" % "2.4-SNAPSHOT"
+
 lazy val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
 
 lazy val config = "com.github.kxbmap" %% "configs" % "0.2.4"
@@ -21,6 +23,7 @@ lazy val config = "com.github.kxbmap" %% "configs" % "0.2.4"
 lazy val log4s = "org.log4s" %% "log4s" % "1.1.5"
 
 lazy val scalaRainbow = "pl.project13.scala" %% "rainbow" % "0.2"
+
 
 lazy val hipci = (project in file(".")).
   settings(commonSettings: _*).
@@ -30,7 +33,7 @@ lazy val hipci = (project in file(".")).
     version := "1.0",
     resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
     logLevel := Level.Error,
-    libraryDependencies ++= Seq(scalaTest, akkaActor, typesafeConfig, log4s, scopt, config, scalaRainbow),
+    libraryDependencies ++= Seq(scalaTest, akkaActor, akkaRemote, typesafeConfig, log4s, scopt, config, scalaRainbow),
     scalaSource in Compile := baseDirectory.value / "src/main",
     scalaSource in Test := baseDirectory.value / "src/test",
     scalacOptions += "-deprecation",

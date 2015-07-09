@@ -71,7 +71,21 @@ class CommandParser extends CLIComponent {
       }
     }).children(revision1.children(revision2))
 
-    cmd("help") text "Prints the usage help" action {
+    cmd("start") text "Start the hipci daemon" action {
+      (_, previous) => previous match {
+        case EmptyCommand => StartCommand
+        case _ => EmptyCommand
+      }
+    }
+
+    cmd("stop") text "Stop the hipci daemon" action {
+      (_, previous) => previous match {
+        case EmptyCommand => StopCommand
+        case _ => EmptyCommand
+      }
+    }
+
+    cmd("help") text "Show the usage help" action {
       (_, previous) => previous match {
         case EmptyCommand => HelpCommand
         case _ => EmptyCommand

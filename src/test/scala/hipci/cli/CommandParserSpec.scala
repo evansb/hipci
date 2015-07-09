@@ -42,6 +42,18 @@ class CommandParserSpec extends FlatSpec {
     }
   }
 
+  it should "parse hipci start" in {
+    whenReady(subject ? request.Arguments(Seq("start"))) {
+      _ shouldEqual Some(StartCommand)
+    }
+  }
+
+  it should "parse hipci stop" in {
+    whenReady(subject ? request.Arguments(Seq("stop"))) {
+      _ shouldEqual Some(StopCommand)
+    }
+  }
+
   it should "fail to parse hipci run" in {
     whenReady(subject ? request.Arguments(Seq("run"))) {
       _ shouldEqual None

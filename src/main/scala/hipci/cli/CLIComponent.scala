@@ -18,11 +18,11 @@ abstract class CLIComponent extends Component {
     case request.Terminate(exitCode) =>
       val name = descriptor.name
       if (exitCode != 0) {
-        logger.debug(s"$name was terminated due to error.")
+        logger.good(s"$name was terminated due to error.")
       } else {
-        logger.debug(s"$name was terminated successfully.")
+        logger.good(s"$name was terminated successfully.")
       }
-      context.stop(context.self)
+      context.stop(self)
     case other =>
       throw UnrecognizedCommand(sender.toString(), self.toString(), other.toString())
   }

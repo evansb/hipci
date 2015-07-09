@@ -28,3 +28,13 @@ case object HelpCommand extends Command
  */
 case object EmptyCommand extends Command
 
+/**
+ * Models a start daemon command
+ */
+case object StartCommand extends Command
+
+/**
+ * Models a stop daemon command
+ */
+case object StopCommand extends Command
+
