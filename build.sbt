@@ -1,4 +1,5 @@
 import AssemblyPlugin._
+import net.virtualvoid.sbt.graph.Plugin.graphSettings
 
 lazy val commonSettings = Seq(
   organization := "org.evansb",
@@ -8,7 +9,10 @@ lazy val commonSettings = Seq(
 
 lazy val scopt = "com.github.scopt" %% "scopt" % "3.3.0"
 
-lazy val scalaTest = "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test"
+lazy val scalaTest = ("org.scalatest" %% "scalatest" % "2.2.4" % "test").excludeAll(
+  ExclusionRule(name = "scala-xml"),
+  ExclusionRule(name = "scala-parser-combinators")
+)
 
 lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.4-SNAPSHOT"
 
@@ -22,16 +26,20 @@ lazy val log4s = "org.log4s" %% "log4s" % "1.1.5"
 
 lazy val scalaRainbow = "pl.project13.scala" %% "rainbow" % "0.2"
 
+lazy val sorm = "org.sorm-framework" % "sorm" % "0.3.18"
 
 lazy val hipci = (project in file(".")).
   settings(commonSettings: _*).
   settings(assemblySettings: _*).
+  settings(graphSettings: _*).
   settings(
     name := "hipci",
     version := "1.0",
     resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
     logLevel := Level.Error,
-    libraryDependencies ++= Seq(scalaTest, akkaActor, akkaRemote, typesafeConfig, log4s, scopt, config, scalaRainbow),
+    conflictWarning := ConflictWarning.disable,
+    libraryDependencies ++= Seq(scalaTest, akkaActor, akkaRemote, typesafeConfig, log4s, scopt,
+      config, scalaRainbow, sorm),
     scalaSource in Compile := baseDirectory.value / "src/main",
     scalaSource in Test := baseDirectory.value / "src/test",
     scalacOptions ++= Seq("-deprecation", "-feature"),
