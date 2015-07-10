@@ -53,12 +53,12 @@ lazy val hipci = (project in file(".")).
     scalaSource in Compile := baseDirectory.value / "src/main",
     scalaSource in Test := baseDirectory.value / "src/test",
     scalacOptions ++= Seq("-deprecation", "-feature"),
-    mainClass in (Compile, run) := Some("scala.hipci.cli.CLIApp"),
+    mainClass in (Compile, run) := Some("edu.nus.hipci.cli.CLIApp"),
     assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript = Some(defaultShellScript)),
     assemblyJarName in assembly := "hipci",
     test in assembly := {},
     parallelExecution in Test := false,
-    mainClass in assembly := Some("scala.hipci.cli.CLIApp"),
+    mainClass in assembly := Some("edu.nus.hipci.cli.CLIApp"),
     assemblyOutputPath in assembly := baseDirectory.value / "bin" / "hipci"
   )
 
