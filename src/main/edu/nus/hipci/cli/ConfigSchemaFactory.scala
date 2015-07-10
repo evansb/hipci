@@ -33,7 +33,7 @@ class ConfigSchemaFactory extends CLIComponent {
       val sleekDirectory = config.getOrElse[String](SleekDirectory, defaultSchema.sleekDirectory)
       val timeout = config.getOrElse[Long](Timeout, defaultSchema.timeout)
       val tests = collectTestsFromConfig(config)
-      Success(ConfigSchema(projectDirectory, hipDirectory, sleekDirectory, timeout, tests))
+      Success(ConfigSchema("", projectDirectory, hipDirectory, sleekDirectory, timeout, tests))
     } catch {
       case e:InvalidHipSpec => Failure(e)
     }
@@ -60,13 +60,13 @@ class ConfigSchemaFactory extends CLIComponent {
           val hipSpec = specs.foldRight[Map[String, Boolean]](HashMap.empty)({
             (en, acc) => acc + parseSingleHipSpec(en)
           })
-          Some(HipTest(filename, arguments, hipSpec))
+          Some(GenTest(filename, HipTest, arguments.toSet, hipSpec))
         } else {
           val indexedSpecs = specs.zipWithIndex.map((p) => p.copy(_2 = p._2 + 1))
-          val sleekSpec = indexedSpecs.foldRight[Map[Int, Boolean]](Map.empty)({
-            (p, acc) => acc + ((p._2, parseSingleSleekSpec(p._1)))
+          val sleekSpec = indexedSpecs.foldRight[Map[String, Boolean]](Map.empty)({
+            (p, acc) => acc + ((p._2.toString, parseSingleSleekSpec(p._1)))
           })
-          Some(SleekTest(filename, arguments, sleekSpec))
+          Some(GenTest(filename, SleekTest, arguments.toSet, sleekSpec))
         }
     }
   }
@@ -77,14 +77,14 @@ class ConfigSchemaFactory extends CLIComponent {
     type JList[T] = java.util.List[T]
 
     val entries = JavaConversions asScalaSet config.entrySet filterNot((e) => ReservedKeywords.contains(e.getKey))
-    entries.foldRight[Map[String, TestPool[GenTest[_,_]]]](HashMap.empty)({
+    entries.foldRight[Map[String, Set[GenTest]]](HashMap.empty)({
       (en, acc) =>
         val rawTestEntry = config.getValue(en.getKey).unwrapped().asInstanceOf[JList[JList[String]]]
           .asScala.toList.map(_.asScala.toList)
-        val testPool = rawTestEntry.foldRight[HashSet[GenTest[_,_]]](HashSet.empty)({
+        val testPool = rawTestEntry.foldRight[HashSet[GenTest]](HashSet.empty)({
           (en, acc) => toGenTest(en).fold(acc)({ (t) => acc + t })
         })
-        acc + ((en.getKey, TestPool(testPool)))
+        acc + ((en.getKey, testPool))
     })
   }
 

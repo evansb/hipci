@@ -27,4 +27,8 @@ package object hipci {
   val HipExtension = ".ss"
 
   val SleekExtension = ".slk"
+
+  val HipTest = "hip"
+
+  val SleekTest = "sleek"
 }

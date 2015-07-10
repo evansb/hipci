@@ -34,7 +34,7 @@ class OutputParserSpec extends FlatSpec {
   it should "parse sleek output correctly" in {
     val output = scala.io.Source.fromFile(Paths.get("fixtures","sleek8-output.txt").toFile()).mkString
     whenReady(subject ? ParseSleekOutput(output)) {
-      _ shouldEqual ParsedSleekOutput(Map(1 -> true, 9-> true, 10 -> false, 15 -> false, 17 -> false))
+      _ shouldEqual ParsedSleekOutput(Map("1" -> true, "9" -> true, "10" -> false, "15" -> false, "17" -> false))
     }
   }
 

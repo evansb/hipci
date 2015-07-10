@@ -26,7 +26,18 @@ lazy val log4s = "org.log4s" %% "log4s" % "1.1.5"
 
 lazy val scalaRainbow = "pl.project13.scala" %% "rainbow" % "0.2"
 
-lazy val sorm = "org.sorm-framework" % "sorm" % "0.3.18"
+lazy val scalaLibrary = "org.scala-lang" % "scala-library" % "2.11.6"
+
+lazy val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.11.6"
+
+lazy val embrace = "com.github.nikita-volkov" % "embrace" % "0.1.3" intransitive
+
+lazy val sorm = "org.sorm-framework" % "sorm" % "0.3.18" excludeAll (ExclusionRule(name = "embrace"))
+
+lazy val h2 = "com.maven2.h2database" % "h2" % "1.4.187" from
+      "http://repo2.maven.org/maven2/com/h2database/h2/1.4.187/h2-1.4.187.jar"
+
+lazy val slf4j = ""
 
 lazy val hipci = (project in file(".")).
   settings(commonSettings: _*).
@@ -37,9 +48,8 @@ lazy val hipci = (project in file(".")).
     version := "1.0",
     resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
     logLevel := Level.Error,
-    conflictWarning := ConflictWarning.disable,
-    libraryDependencies ++= Seq(scalaTest, akkaActor, akkaRemote, typesafeConfig, log4s, scopt,
-      config, scalaRainbow, sorm),
+    libraryDependencies ++= Seq(h2, scalaTest, akkaActor, akkaRemote, typesafeConfig, log4s, scopt,
+      config, scalaRainbow, scalaLibrary, scalaCompiler, embrace, sorm),
     scalaSource in Compile := baseDirectory.value / "src/main",
     scalaSource in Test := baseDirectory.value / "src/test",
     scalacOptions ++= Seq("-deprecation", "-feature"),

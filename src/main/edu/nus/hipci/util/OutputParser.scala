@@ -31,10 +31,10 @@ class OutputParser extends Component {
   }
 
   def parseSleekOutput(output: String) = {
-    output.lines.foldLeft(Map.empty[Int, Boolean])({ (acc, line) =>
+    output.lines.foldLeft(Map.empty[String, Boolean])({ (acc, line) =>
       line match {
         case SleekOutputRegex(number, result) =>
-          acc + ((Integer.parseInt(number), (result.toUpperCase.equals(SleekValid))))
+          acc + ((number, result.toUpperCase.equals(SleekValid)))
         case _ => acc
       }
     })

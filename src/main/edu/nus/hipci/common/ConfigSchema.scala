@@ -25,6 +25,9 @@ object ConfigSchema {
 
 case class ConfigSchema
 (
+  /* ID of the test, taken from commit ID and hash of the config file */
+  testID: String = "",
+
   /* Base project directory, usually location of hip and sleek executable */
   projectDirectory : String = Paths.get(sys.env("HOME"), "hg", "sleekex").toString,
 
@@ -38,7 +41,7 @@ case class ConfigSchema
   timeout: Long = 10000,
 
   /* Test entries */
-  tests: Map[String, TestPool[GenTest[_,_]]] = HashMap.empty
+  tests: Map[String, Set[GenTest]] = HashMap.empty
 )
 
 

@@ -1,7 +1,7 @@
 package edu.nus.hipci.daemon
 
 import akka.actor.ActorRef
-import edu.nus.hipci.common.{DbEntity, ConfigSchema}
+import edu.nus.hipci.common.ConfigSchema
 
 /**
  * Requests and Responses defined at this package
@@ -16,9 +16,9 @@ object request {
   case object Ping extends Request
 
   sealed abstract class DbQuery extends Request
-  case class Post(content : DbEntity) extends DbQuery
-  case class Get(commitID: String, configID: String) extends DbQuery
-  case class Put(commitID: String, configID: String, content: DbEntity) extends DbQuery
+  case class Post(content : ConfigSchema) extends DbQuery
+  case class Get(testID: String) extends DbQuery
+  case class Put(testID: String, content: ConfigSchema) extends DbQuery
 }
 
 object response {
@@ -33,6 +33,6 @@ object response {
   case object ACK
 
   sealed abstract class DbQueryResult extends Response
-  case class QueryOk(entity: DbEntity) extends DbQueryResult
+  case class QueryOk(entity: ConfigSchema) extends DbQueryResult
   case object QueryNotFound extends DbQueryResult
 }

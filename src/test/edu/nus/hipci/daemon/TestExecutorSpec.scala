@@ -33,16 +33,18 @@ class TestExecutorSpec extends FlatSpec {
       sleekDirectory = "../fixtures/sleek",
       timeout = 10000,
       tests = Map(
-        "test" -> TestPool(Set(
-          HipTest(
+        "test" -> Set(
+          GenTest(
             path = "test_hip.ss",
-            arguments = List.empty,
+            kind = "hip",
+            arguments = Set.empty,
             specs = Map("append" -> true)
           ),
-          SleekTest(
+          GenTest(
             path = "test_sleek.slk",
-            arguments = List.empty,
-            specs = Map(1 -> false, 2 -> true))))))
+            kind = "sleek",
+            arguments = Set.empty,
+            specs = Map("1" -> false, "2" -> true)))))
     whenReady(subject ? SubmitTest(config)) {
       _ match {
         case promise: Promise[_] =>

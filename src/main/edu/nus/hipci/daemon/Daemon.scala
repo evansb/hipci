@@ -31,7 +31,7 @@ object Daemon extends ComponentDescriptor {
     |   }
     |   remote {
     |     netty.tcp {
-    |       hostname = "localhost"
+    |       hostname = "127.0.0.1"
     |       port = 2552
     |     }
     |    log-sent-messages = on
@@ -64,7 +64,7 @@ object Daemon extends ComponentDescriptor {
   }
 
   def getDaemon(context: ActorContext) = {
-    context.actorSelection("akka.tcp://hipcid@localhost:2552/user/Daemon")
+    context.actorSelection("akka.tcp://hipcid@127.0.0.1:2552/user/Daemon")
   }
 
   def stop(context: ActorContext) = {

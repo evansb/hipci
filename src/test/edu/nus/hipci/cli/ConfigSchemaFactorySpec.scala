@@ -64,21 +64,23 @@ class ConfigSchemaFactorySpec extends FlatSpec with Matchers {
         | ]
       """.stripMargin)
 
-    val pool : Set[GenTest[_,_]] = Set(
-      HipTest(
+    val pool = Set(
+      GenTest(
         path = "test.ss",
-        arguments = List("-arg", "--arg2"),
+        kind = "hip",
+        arguments = Set("-arg", "--arg2"),
         specs = Map("foo" -> true, "bar" -> false)
       ),
-      SleekTest(
+      GenTest(
         path = "test.slk",
-        arguments = List(),
-        specs = Map(1 -> true, 2 -> false)
+        kind = "sleek",
+        arguments = Set(),
+        specs = Map("1" -> true, "2" -> false)
       )
     )
 
     whenReady(subject ? request.Config(config)) {
-      _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> TestPool(pool))))
+      _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> pool)))
     }
   }
 
@@ -104,14 +106,15 @@ class ConfigSchemaFactorySpec extends FlatSpec with Matchers {
         | ]
       """.
         stripMargin)
-    val pool : Set[GenTest[_,_]] = Set(
-      HipTest(
+    val pool = Set(
+      GenTest(
         path = "test.ss",
-        arguments = List("-arg", "--arg2"),
-        specs = Map( "foo" -> true, "bar" -> false)
+        kind = "hip",
+        arguments = Set("-arg", "--arg2"),
+        specs = Map("foo" -> true, "bar" -> false)
       ))
     whenReady(subject ? Config(config)) {
-      _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> TestPool(pool))))
+      _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> pool)))
     }
   }
 }

@@ -20,9 +20,11 @@ import edu.nus.hipci.common._
 class DaemonSpec extends FlatSpec {
   import request._
   import response._
+
   Daemon.start()
-  val system = ActorSystem("hipci-test")
-  val daemon = system.actorSelection("akka.tcp://hipcid@localhost:2552/user/Daemon")
+
+  val system = ActorSystem("hipci-test", Daemon.defaultClientConfig)
+  val daemon = system.actorSelection("akka.tcp://hipcid@127.0.0.1:2552/user/Daemon")
   val subject = Forwarder.newForwarder(system, daemon)
   implicit val timeout = Timeout(1.seconds)
   val path = System.getenv().get("PATH")
@@ -34,24 +36,39 @@ class DaemonSpec extends FlatSpec {
       sleekDirectory = "../fixtures/sleek",
       timeout = 10000,
       tests = Map(
-        "test" -> TestPool(Set(
-          HipTest(
+        "test" -> Set(
+          GenTest(
             path = "test_hip.ss",
-            arguments = List.empty,
+            kind = "hip",
+            arguments = Set.empty,
             specs = Map("append" -> true)
-          )))))
-    val result = Await.result(subject ? SubmitTest(config), 1.seconds)
-    result.asInstanceOf[TestResult].isInstanceOf[TicketAssigned] shouldBe true
+          ))))
+    var result : TestResult = null
+    whenReady(subject ? SubmitTest(config)) {
+      _ match {
+        case promise: Promise[_] =>
+          result = Await.result(promise.future, 2.seconds).asInstanceOf[TicketAssigned]
+        case _ => assert(false)
+      }
+    }
     Thread.sleep(2000)
     val ticket = result.asInstanceOf[TicketAssigned].ticket
     whenReady (subject ? CheckTicket(ticket)) {
-      case (n) => n.isInstanceOf[TestComplete] shouldBe true
+      _ match {
+        case promise: Promise[_] =>
+          Await.result(promise.future, 2.seconds).isInstanceOf[TestComplete] shouldBe true
+        case _ => assert(false)
+      }
     }
   }
 
   it should "respond to ping with ack" in {
     whenReady (subject ? Ping) {
-      _ shouldEqual ACK
+      _ match {
+        case promise: Promise[_] =>
+          Await.result(promise.future, 2.seconds) shouldEqual ACK
+        case _ => assert(false)
+      }
     }
   }
 

@@ -18,13 +18,13 @@ object OutputAnalyzer extends ComponentDescriptor {
 class OutputAnalyzer extends Component {
   val descriptor = OutputAnalyzer
 
-  def analyze[K,V](output1: GenTest[K,V], output2: GenTest[K,V], reference: GenTest[K,V]) = {
+  def analyze[K,V](output1: GenTest, output2: GenTest, reference: GenTest) = {
     Diff3(output1.path, output2.path, reference.path,
       arguments3(output1, output2, reference),
       combineSpec(output1.specs, output2.specs, reference.specs))
   }
 
-  private def arguments3[K,V](output1: GenTest[K,V], output2: GenTest[K,V], reference: GenTest[K,V]) = {
+  private def arguments3[K,V](output1: GenTest, output2: GenTest, reference: GenTest) = {
     val set1 = output1.arguments.toSet
     val set2 = output2.arguments.toSet
     val set3 = reference.arguments.toSet

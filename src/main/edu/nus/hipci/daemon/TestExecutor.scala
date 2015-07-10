@@ -32,7 +32,7 @@ class TestExecutor extends Component {
   import request._
   import response._
 
-  type T = GenTest[_,_]
+  type T = GenTest
 
   protected val descriptor = TestExecutor
   protected val logger = Logger("")
@@ -40,26 +40,20 @@ class TestExecutor extends Component {
   /**
    * Command name to execute.
    */
-  private def getCommand(test: T): String = {
-    if (test.isInstanceOf[HipTest]) {
-      "hip"
-    } else {
-      "sleek"
-    }
-  }
+  private def getCommand(test: T): String = { test.kind }
 
   private def parseOutput(output:String, base: T): T = {
     val parser = loadComponent(OutputParser)
-    if (base.isInstanceOf[HipTest]) {
+    if (base.kind.equals("hip")) {
       val newSpecs = Await.result(parser ? ParseHipOutput(output), 1.seconds) match {
         case ParsedHipOutput(spec) => spec
       }
-      base.asInstanceOf[HipTest].copy(specs = newSpecs).asInstanceOf[T]
+      base.copy(specs = newSpecs)
     } else {
       val newSpecs = Await.result(parser ? ParseSleekOutput(output), 1.seconds) match {
         case ParsedSleekOutput(spec) => spec
       }
-      base.asInstanceOf[SleekTest].copy(specs = newSpecs).asInstanceOf[T]
+      base.copy(specs = newSpecs)
     }
   }
 
@@ -70,14 +64,14 @@ class TestExecutor extends Component {
    * @return A promise that returns a test pool when resolved
    */
   def executeSingleSuite(baseDir: Path, hipDir: Path,
-                         sleekDir: Path, name: String, pool: TestPool[T],
+                         sleekDir: Path, name: String, pool: Set[GenTest],
                          timeout : Duration)
                         (implicit executionContext: ExecutionContext) = {
     var future = Future{ Set.empty[T] }
     val sysPath = baseDir.toAbsolutePath.toString + ":" + sys.env("PATH")
     logger.good(s"Suite ${name}")
     pool.foreach((t) => {
-      val path = (if (t.isInstanceOf[HipTest]) { hipDir } else { sleekDir }).resolve(Paths.get(name, t.path))
+      val path = (if (t.kind.equals("hip")) { hipDir } else { sleekDir }).resolve(Paths.get(name, t.path))
       val command = baseDir.resolve(getCommand(t)).toAbsolutePath.toString
       val cmd = Seq(command) ++ t.arguments.map(_.toString) ++ Seq(path.toString)
       future = future map {
@@ -100,7 +94,7 @@ class TestExecutor extends Component {
    */
   private def executeConfig(config: ConfigSchema) : Promise[TestResult] = {
     val promise = Promise[TestResult]
-    val init = Future { Map.empty[String, TestPool[T]] }
+    val init = Future { Map.empty[String, Set[GenTest]] }
     config.tests.foldLeft(init)({ (acc, entry) =>
       val name = entry._1
       val pool = entry._2
@@ -111,7 +105,7 @@ class TestExecutor extends Component {
           val sleekDir = Paths.get(config.sleekDirectory)
           val result = Await.result(executeSingleSuite(baseDir, hipDir, sleekDir,
             name, pool, config.timeout millis), (config.timeout * pool.size) millis)
-          m + ((name, TestPool(result)))
+          m + ((name, result))
       }
     }).andThen({
       case Success(pool) => promise.success(TestComplete(System.currentTimeMillis, config.copy(tests = pool)))

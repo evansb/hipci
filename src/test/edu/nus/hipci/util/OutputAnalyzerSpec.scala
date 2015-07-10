@@ -24,21 +24,24 @@ class OutputAnalyzerSpec extends FlatSpec {
 
   "Output Analyzer" should "3 way analyze HIP test" in {
     val one =
-      HipTest(
+      GenTest(
         path = "test.ss@a",
-        arguments = List("-arg", "--arg2"),
+        kind = "hip",
+        arguments = Set("-arg", "--arg2"),
         specs = Map( "foo" -> true, "bar" -> false)
       )
     val two =
-      HipTest(
+      GenTest(
         path = "test.ss@b",
-        arguments = List("-arg"),
+        kind = "hip",
+        arguments = Set("-arg"),
         specs = Map( "foo" -> true)
       )
     val three =
-      HipTest(
+      GenTest(
         path = "test.ss@c",
-        arguments = List("-arg"),
+        kind = "hip",
+        arguments = Set("-arg"),
         specs = Map( "foo" -> false, "bar" -> false)
       )
     whenReady(subject ? AnalyzeOutput(one, two, three)) {

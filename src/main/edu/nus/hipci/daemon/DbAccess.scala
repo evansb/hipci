@@ -29,19 +29,17 @@ class DbAccess(db: Instance) extends Component {
 
   protected def handleQuery(query: DbQuery) = query match {
     case Post(entity) => QueryOk(db.save(entity))
-    case Put(commitID, configID, newEntity) =>
-        val get = db.query[DbEntity]
-          .whereEqual("commitID", commitID)
-          .whereEqual("configID", configID)
+    case Put(testID, newEntity) =>
+        val get = db.query[ConfigSchema]
+          .whereEqual("testID", testID)
           .fetchOne()
         get match {
           case Some(_) => QueryOk(db.save(newEntity))
           case None => QueryNotFound
         }
-    case Get(commitID, configID) =>
-      val get = db.query[DbEntity]
-        .whereEqual("commitID", commitID)
-        .whereEqual("configID", configID)
+    case Get(testID) =>
+      val get = db.query[ConfigSchema]
+        .whereEqual("testID", testID)
         .fetchOne()
       get match {
         case Some(e) => QueryOk(e)
