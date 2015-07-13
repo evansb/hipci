@@ -87,7 +87,7 @@ class Daemon extends Component {
 
   private def submitTest(config: TestConfiguration)(implicit executionContext: ExecutionContext) = {
     val testExecutor = loadComponent(TestExecutor)
-    val ticket = config.hashCode().toString
+    val ticket = config.testID
     logger.good(s"Submitting ${ticket} to daemon")
     cache.get(ticket) match {
       case None =>

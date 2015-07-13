@@ -2,7 +2,6 @@ package edu.nus.hipci.hg
 
 import java.io._
 import java.nio.file.Path
-import edu.nus.hipci.hg.request.GetCurrentRevision
 
 import scala.sys.process._
 import scala.sys.process.ProcessLogger
@@ -17,6 +16,9 @@ object Hg extends ComponentDescriptor {
 }
 
 class Hg extends Component {
+  import request._
+  import response._
+
   protected val descriptor = Hg
   private val logger = Logging.toStdout()
 
@@ -32,16 +34,15 @@ class Hg extends Component {
   }
 
   private def getCurrentRevision(repo: Path) = {
-    runCommand(Seq("hg", "identify"), repo.toFile) match {
+    runCommand(Seq("hg", "id", "-i"), repo.toFile) match {
       case (0, out, _)  =>
         if (out.endsWith("+")) {
-          Some((out.substring(0, out.length - 1), true))
+          RevisionDirty(out.trim().substring(0, out.length - 1))
         } else {
-          Some((out, false))
+          RevisionClean(out.trim())
         }
       case (_, _, err) =>
-        logger.error("Mercurial error:\n" + err + "\n")
-        None
+        MercurialError(err)
     }
   }
 

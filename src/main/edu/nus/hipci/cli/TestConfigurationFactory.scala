@@ -1,6 +1,7 @@
 package edu.nus.hipci.cli
 
 import java.nio.file.Paths
+import java.security.MessageDigest
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
@@ -32,6 +33,7 @@ class TestConfigurationFactory extends CLIComponent {
   import hg.response._
 
   val descriptor = TestConfigurationFactory
+
   protected def fromConfig(config: Config): Try[TestConfiguration] = {
     import TestConfiguration.Fields._
     try {
@@ -48,13 +50,19 @@ class TestConfigurationFactory extends CLIComponent {
     }
   }
 
+  private def computeConfigSHA(config: Config) : String = {
+    val hash = config.hashCode().toString()
+    MessageDigest.getInstance("SHA-1").digest(hash.getBytes("UTF-8")).map("%02x".format(_)).mkString
+  }
+
   private def computeTestID(projectDirectory: String, config: Config) : String = {
     val hg = loadComponent(Hg)
     Await.result(hg ? GetCurrentRevision(Paths.get(projectDirectory)), 3.seconds) match {
       case RevisionDirty(rev) =>
         logger.error(DirtyRepository(projectDirectory).getMessage)
-        rev
-      case RevisionClean(rev) => rev
+        rev + "@" + computeConfigSHA(config)
+      case RevisionClean(rev) => rev + "@" + computeConfigSHA(config)
+      case MercurialError(_) => ""
     }
   }
 

@@ -14,4 +14,6 @@ object response {
   sealed abstract class CurrentRevisionResponse extends Response
   case class RevisionDirty(revision: String) extends CurrentRevisionResponse
   case class RevisionClean(revision: String) extends CurrentRevisionResponse
+
+  case class MercurialError(err: String) extends Response
 }
