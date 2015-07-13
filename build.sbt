@@ -37,8 +37,6 @@ lazy val sorm = "org.sorm-framework" % "sorm" % "0.3.18" excludeAll (ExclusionRu
 lazy val h2 = "com.maven2.h2database" % "h2" % "1.4.187" from
       "http://repo2.maven.org/maven2/com/h2database/h2/1.4.187/h2-1.4.187.jar"
 
-lazy val slf4j = ""
-
 lazy val hipci = (project in file(".")).
   settings(commonSettings: _*).
   settings(assemblySettings: _*).

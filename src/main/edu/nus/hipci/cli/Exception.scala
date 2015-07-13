@@ -32,6 +32,20 @@ case class FileNotFound(filename: String)
        |   $filename
     """.stripMargin)
 
+case class InvalidRepository(path: String)
+  extends Exception(
+    s"""
+       | The following path does not exist or is not a mercurial repository:
+       |   $path
+    """.stripMargin)
+
+case class DirtyRepository(path: String)
+  extends Exception(
+    s"""
+       | The following repository has uncommitted changes and cannot be tested
+       |   $path
+    """.stripMargin)
+
 case class UnrecognizedCommand(sender: String, receiver: String, message: String)
   extends Exception(
     s"""

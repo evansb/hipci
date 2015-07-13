@@ -1,5 +1,9 @@
 package edu.nus.hipci.cli
 
+import java.nio.file.Paths
+
+import scala.concurrent.Await
+import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
 import scala.collection.JavaConversions
 import scala.collection.immutable.{HashSet, HashMap}
@@ -9,6 +13,7 @@ import com.github.kxbmap.configs._
 
 import edu.nus.hipci._
 import edu.nus.hipci.common._
+import edu.nus.hipci.hg.Hg
 
 /**
  * Creates a TestConfiguration from a Config object.
@@ -33,9 +38,18 @@ class TestConfigurationFactory extends CLIComponent {
       val sleekDirectory = config.getOrElse[String](SleekDirectory, defaultSchema.sleekDirectory)
       val timeout = config.getOrElse[Long](Timeout, defaultSchema.timeout)
       val tests = collectTestsFromConfig(config)
-      Success(TestConfiguration("", projectDirectory, hipDirectory, sleekDirectory, timeout, tests))
+      val testID = computeTestID(projectDirectory, config)
+      Success(TestConfiguration(testID, projectDirectory, hipDirectory, sleekDirectory, timeout, tests))
     } catch {
       case e:InvalidHipSpec => Failure(e)
+    }
+  }
+
+  private def computeTestID(projectDirectory: String, config: Config) : String = {
+    Await.result(Hg.getCurrentRevision(Paths.get(projectDirectory)), 3.seconds) match {
+      case None => throw InvalidRepository(projectDirectory)
+      case Some((_, true)) => throw DirtyRepository(projectDirectory)
+      case Some((rev, false)) => rev
     }
   }
 
