@@ -10,7 +10,6 @@ import scala.sys.process.Process
 import akka.actor.Props
 import akka.pattern._
 
-import edu.nus.hipci.cli.Logger
 import edu.nus.hipci.common._
 import edu.nus.hipci.util
 import edu.nus.hipci.util._

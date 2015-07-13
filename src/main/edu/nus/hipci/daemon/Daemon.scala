@@ -10,9 +10,8 @@ import akka.util.Timeout
 import akka.pattern._
 import com.typesafe.config.ConfigFactory
 
-import edu.nus.hipci.cli.Logger
+import edu.nus.hipci.common._
 import edu.nus.hipci.cli.request.Terminate
-import edu.nus.hipci.common.{Component, TestConfiguration, ComponentDescriptor}
 
 /**
  * Receives test submission and assign tickets.
@@ -84,7 +83,7 @@ class Daemon extends Component {
   private var system : ActorRef = null
   protected val descriptor = Daemon
   private val cache: mutable.HashMap[String, (Long, Promise[TestResult])] = mutable.HashMap.empty
-  protected val logger = Logger("")
+  protected val logger = Logging.toStdout("")
 
   private def submitTest(config: TestConfiguration)(implicit executionContext: ExecutionContext) = {
     val testExecutor = loadComponent(TestExecutor)

@@ -1,6 +1,6 @@
 package edu.nus.hipci.cli
 
-import edu.nus.hipci.common.Component
+import edu.nus.hipci.common.{Logging, Component}
 
 /**
  * Base class for all the CLI components
@@ -11,7 +11,7 @@ abstract class CLIComponent extends Component {
   /**
    * Logger for the component.
    */
-  protected val logger = Logger("")
+  protected val logger = Logging.toStdout()
 
   import request._
   override def receive = {

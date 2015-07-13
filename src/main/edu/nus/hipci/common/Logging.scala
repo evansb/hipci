@@ -1,4 +1,4 @@
-package edu.nus.hipci.cli
+package edu.nus.hipci.common
 
 import pl.project13.scala.rainbow._
 
@@ -15,4 +15,8 @@ case class Logger(name : String) {
   def debug(msg : String) = logger.debug(msg)
   def good(msg : String) = logger.info(msg.green)
   def bad(msg : String) = logger.info(msg.red)
+}
+
+object Logging {
+  def toStdout(name: String = "") = Logger(name)
 }

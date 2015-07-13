@@ -2,15 +2,17 @@ package edu.nus.hipci.hg
 
 import java.io._
 import java.nio.file.Path
+
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.sys.process._
 import scala.sys.process.ProcessLogger
 
-import edu.nus.hipci.cli.Logger
+import edu.nus.hipci.common.Logging
 
 object Hg {
-  private val logger = Logger("")
+  private val logger = Logging.toStdout()
 
   private def runCommand(cmd: Seq[String], workingDir: File): (Int, String, String) = {
     val stdout = new ByteArrayOutputStream
