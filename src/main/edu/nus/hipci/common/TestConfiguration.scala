@@ -29,7 +29,7 @@ case class TestConfiguration
   testID: String = "",
 
   /* Base project directory, usually location of hip and sleek executable */
-  projectDirectory : String = Paths.get(sys.env("HOME"), "hg", "sleekex").toString,
+  projectDirectory : String = ".",
 
   /* Location of HIP test cases, relative to project directory unless specified absolute path */
   hipDirectory : String = Paths.get("examples", "working", "sleek").toString,
@@ -42,6 +42,14 @@ case class TestConfiguration
 
   /* Test entries */
   tests: Map[String, Set[GenTest]] = HashMap.empty
-)
+) {
+  /**
+   * Returns the copy of the test configuration without ID.
+   * @return A copy of the test configuration without the ID
+   */
+  def withoutID() = {
+    this.copy(testID = "")
+  }
+}
 
 

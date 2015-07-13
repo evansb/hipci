@@ -2,12 +2,11 @@ package edu.nus.hipci.cli
 
 import java.nio.file.Paths
 import java.security.MessageDigest
-
 import scala.concurrent.Await
-import scala.concurrent.duration._
 import scala.util.{Try, Success, Failure}
 import scala.collection.JavaConversions
 import scala.collection.immutable.{HashSet, HashMap}
+import scala.concurrent.duration._
 import akka.actor.Props
 import akka.pattern._
 import com.typesafe.config.Config
@@ -57,7 +56,8 @@ class TestConfigurationFactory extends CLIComponent {
 
   private def computeTestID(projectDirectory: String, config: Config) : String = {
     val hg = loadComponent(Hg)
-    Await.result(hg ? GetCurrentRevision(Paths.get(projectDirectory)), 3.seconds) match {
+    val revision = Await.result(hg ? GetCurrentRevision(Paths.get(projectDirectory)), timeout.duration)
+    revision match {
       case RevisionDirty(rev) =>
         logger.error(DirtyRepository(projectDirectory).getMessage)
         rev + "@" + computeConfigSHA(config)

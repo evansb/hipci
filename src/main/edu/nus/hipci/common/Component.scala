@@ -38,11 +38,10 @@ abstract class Component extends Actor {
     descriptor.actors(component.name)
 
   /**
-   * Default timeout for a sub commands (2 seconds)
-   * Please override this field if the component is expected to take longer
-   * to finish.
+   * Default timeout for a sub commands (10 seconds)
+   * Please override this field if the component is expected to take shorter to finish
    */
-  implicit val timeout = Timeout(2.seconds)
+  implicit val timeout = Timeout(10.seconds)
 
   override def receive = {
     case _ => ()

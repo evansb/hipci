@@ -1,5 +1,7 @@
 package edu.nus.hipci.cli
 
+import org.scalatest.time.{Seconds, Millis, Span}
+
 import scala.util.{Failure, Success}
 import scala.collection.immutable.Map
 import scala.concurrent.duration._
@@ -21,32 +23,34 @@ class TestConfigurationFactorySpec extends FlatSpec with Matchers {
   import request._
 
   val system = ActorSystem("hipci-test")
-  val subject = system.actorOf(Props[TestConfigurationFactory], "TestConfigurationFactory")
-  implicit val timeout = Timeout(1.seconds)
+  val subject = TestConfigurationFactory.register(system)
+
+  val patience = Span(10, Seconds)
+  implicit val akkaTimeout = Timeout(10.seconds)
+
+  val defaultConfig = TestConfiguration()
 
   "TestConfigurationFactory" should "parse empty configuration" in {
-    val defaultConfig = TestConfiguration()
     val config = ConfigFactory.parseString(
       """
         |
       """.stripMargin)
-    whenReady(subject ? Config(config)) {
+    whenReady(subject ? Config(config), timeout(patience)) {
       _ shouldEqual Success(defaultConfig)
     }
   }
 
   it should "parse some configuration with empty spec" in {
-    val defaultConfig = TestConfiguration()
     val config = ConfigFactory.parseString(
       """
-        | project_directory = /root/some
+        | project_directory = some_directory
         | hip_directory = custom/hip
         | sleek_directory = custom/sleek
         | timeout = 2000
       """.stripMargin)
-    whenReady(subject ? request.Config(config)) {
+    whenReady(subject ? Config(config), timeout(patience)) {
       _ shouldEqual Success(defaultConfig.copy(
-        projectDirectory = "/root/some",
+        projectDirectory = "some_directory",
         hipDirectory = "custom/hip",
         sleekDirectory = "custom/sleek",
         timeout = 2000
@@ -55,7 +59,6 @@ class TestConfigurationFactorySpec extends FlatSpec with Matchers {
   }
 
   it should "parse empty configuration with some spec" in {
-    val defaultConfig = TestConfiguration()
     val config = ConfigFactory.parseString(
       """
         | infinity = [
@@ -79,7 +82,7 @@ class TestConfigurationFactorySpec extends FlatSpec with Matchers {
       )
     )
 
-    whenReady(subject ? request.Config(config)) {
+    whenReady(subject ? request.Config(config), timeout(patience)) {
       _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> pool)))
     }
   }
@@ -91,13 +94,12 @@ class TestConfigurationFactorySpec extends FlatSpec with Matchers {
       |   [test.ss, -arg, --arg2, foo/error]
       | ]
     """.stripMargin)
-    whenReady(subject ? request.Config(config)) {
+    whenReady(subject ? request.Config(config), timeout(patience)) {
       _ shouldEqual Failure(InvalidHipSpec("foo/error"))
     }
   }
 
   it should "allow empty spec on entries" in {
-    val defaultConfig = TestConfiguration()
     val config = ConfigFactory.parseString(
       """
         | infinity = [
@@ -113,7 +115,7 @@ class TestConfigurationFactorySpec extends FlatSpec with Matchers {
         arguments = Set("-arg", "--arg2"),
         specs = Map("foo" -> true, "bar" -> false)
       ))
-    whenReady(subject ? Config(config)) {
+    whenReady(subject ? Config(config), timeout(patience)) {
       _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> pool)))
     }
   }

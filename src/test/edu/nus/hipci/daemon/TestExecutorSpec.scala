@@ -1,5 +1,7 @@
 package edu.nus.hipci.daemon
 
+import org.scalatest.time.{Seconds, Span}
+
 import scala.collection.immutable.Map
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -23,7 +25,8 @@ class TestExecutorSpec extends FlatSpec {
   val system = ActorSystem("hipci-test", Daemon.defaultClientConfig)
   TestExecutor.register(system)
   val subject = system.actorOf(TestExecutor.props, "TestExecutor")
-  implicit val timeout = Timeout(10.seconds)
+  val patience = Span(10, Seconds)
+  implicit val akkaTimeout = Timeout(10.seconds)
   val path = System.getenv().get("PATH")
 
   "TestExecutor" should "execute simple HIP/SLEEK test suite" in {
@@ -45,10 +48,11 @@ class TestExecutorSpec extends FlatSpec {
             kind = "sleek",
             arguments = Set.empty,
             specs = Map("1" -> false, "2" -> true)))))
-    whenReady(subject ? SubmitTest(config)) {
+    whenReady(subject ? SubmitTest(config), timeout(patience)) {
       _ match {
         case promise: Promise[_] =>
-          assert(Await.result(promise.future, 2.seconds).asInstanceOf[TestComplete].result.equals(config))
+          assert(Await.result(promise.future, akkaTimeout.duration)
+            .asInstanceOf[TestComplete].result.equals(config))
         case _ => assert(false)
       }
     }
