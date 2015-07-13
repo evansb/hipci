@@ -1,7 +1,7 @@
 package edu.nus.hipci.cli
 
 import edu.nus.hipci
-import edu.nus.hipci.common.{ConfigSchema, Diff3}
+import edu.nus.hipci.common.{TestConfiguration, Diff3}
 
 import scala.language.existentials
 import akka.actor.Props
@@ -69,7 +69,7 @@ private class TestReporter extends CLIComponent {
     x.copy(_2 = f(x._2), _3 = f(x._3), _4 = f(x._4))
   }
 
-  private def singleString(config: ConfigSchema) = {
+  private def singleString(config: TestConfiguration) = {
     val builder = StringBuilder.newBuilder
     config.tests.foreach({
       case (suite, pool) =>

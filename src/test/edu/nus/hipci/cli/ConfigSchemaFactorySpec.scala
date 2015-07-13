@@ -13,19 +13,19 @@ import org.scalatest.concurrent.ScalaFutures._
 import edu.nus.hipci.common._
 
 /**
- * Tests the functionality of ConfigSchemaFactory
+ * Tests the functionality of TestConfigurationFactory
  *
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
-class ConfigSchemaFactorySpec extends FlatSpec with Matchers {
+class TestConfigurationFactorySpec extends FlatSpec with Matchers {
   import request._
 
   val system = ActorSystem("hipci-test")
-  val subject = system.actorOf(Props[ConfigSchemaFactory], "ConfigSchemaFactory")
+  val subject = system.actorOf(Props[TestConfigurationFactory], "TestConfigurationFactory")
   implicit val timeout = Timeout(1.seconds)
 
-  "ConfigSchemaFactory" should "parse empty configuration" in {
-    val defaultConfig = ConfigSchema()
+  "TestConfigurationFactory" should "parse empty configuration" in {
+    val defaultConfig = TestConfiguration()
     val config = ConfigFactory.parseString(
       """
         |
@@ -36,7 +36,7 @@ class ConfigSchemaFactorySpec extends FlatSpec with Matchers {
   }
 
   it should "parse some configuration with empty spec" in {
-    val defaultConfig = ConfigSchema()
+    val defaultConfig = TestConfiguration()
     val config = ConfigFactory.parseString(
       """
         | project_directory = /root/some
@@ -55,7 +55,7 @@ class ConfigSchemaFactorySpec extends FlatSpec with Matchers {
   }
 
   it should "parse empty configuration with some spec" in {
-    val defaultConfig = ConfigSchema()
+    val defaultConfig = TestConfiguration()
     val config = ConfigFactory.parseString(
       """
         | infinity = [
@@ -97,7 +97,7 @@ class ConfigSchemaFactorySpec extends FlatSpec with Matchers {
   }
 
   it should "allow empty spec on entries" in {
-    val defaultConfig = ConfigSchema()
+    val defaultConfig = TestConfiguration()
     val config = ConfigFactory.parseString(
       """
         | infinity = [

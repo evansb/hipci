@@ -8,7 +8,7 @@ import akka.actor.Props
 import akka.pattern.ask
 import com.typesafe.config.ConfigFactory
 
-import edu.nus.hipci.common.ConfigSchema
+import edu.nus.hipci.common.TestConfiguration
 import edu.nus.hipci.daemon.Daemon
 import edu.nus.hipci.daemon.request._
 import edu.nus.hipci.daemon.response._
@@ -20,7 +20,7 @@ import edu.nus.hipci.daemon.response._
  */
 object CommandDispatcher extends CLIComponentDescriptor {
   val name = "CommandDispatcher"
-  val subComponents = List(ConfigSchemaFactory, CommandParser, Daemon, TestReporter)
+  val subComponents = List(TestConfigurationFactory, CommandParser, Daemon, TestReporter)
   val props = Props[CommandDispatcher]
 }
 
@@ -30,7 +30,7 @@ class CommandDispatcher extends CLIComponent {
   def props() = Props[CommandDispatcher]
 
   protected def dispatch(command: Command) : request.Request = {
-    val configSchemaFactory = loadComponent(ConfigSchemaFactory)
+    val testConfigurationFactory = loadComponent(TestConfigurationFactory)
     val commandParser = loadComponent(CommandParser)
     command match {
       case RunCommand(configFile, arguments) =>
@@ -45,17 +45,17 @@ class CommandDispatcher extends CLIComponent {
         if (f == null) {
           throw FileNotFound(configFile)
         } else {
-          val future = configSchemaFactory ? request.Config(ConfigFactory.parseFile(f))
-          val configSchema = Await.result(future, timeout.duration)
-            .asInstanceOf[Try[ConfigSchema]] match {
+          val future = testConfigurationFactory ? request.Config(ConfigFactory.parseFile(f))
+          val testConfiguration = Await.result(future, timeout.duration)
+            .asInstanceOf[Try[TestConfiguration]] match {
               case Success(schema) => schema
               case Failure(e) => throw e
             }
-          lazy val numberOfTest = configSchema.tests.size
-          lazy val totalNumberOfFiles = configSchema.tests.foldLeft(0)({(acc, pair) => acc + pair._2.size })
+          lazy val numberOfTest = testConfiguration.tests.size
+          lazy val totalNumberOfFiles = testConfiguration.tests.foldLeft(0)({(acc, pair) => acc + pair._2.size })
           logger.good(s"Found $numberOfTest suites ($totalNumberOfFiles files)")
           val daemon = Daemon.getDaemon(context)
-          val result = Await.result(daemon ? SubmitTest(configSchema), timeout.duration).asInstanceOf[TestResult]
+          val result = Await.result(daemon ? SubmitTest(testConfiguration), timeout.duration).asInstanceOf[TestResult]
           result match {
             case TestComplete(completionTime, config) =>
               logger.good(s"Test completed in ${ completionTime / 1000 } seconds.")

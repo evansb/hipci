@@ -30,7 +30,7 @@ class DbAccess(db: Instance) extends Component {
   protected def handleQuery(query: DbQuery) = query match {
     case Post(entity) => QueryOk(db.save(entity))
     case Put(testID, newEntity) =>
-        val get = db.query[ConfigSchema]
+        val get = db.query[TestConfiguration]
           .whereEqual("testID", testID)
           .fetchOne()
         get match {
@@ -38,7 +38,7 @@ class DbAccess(db: Instance) extends Component {
           case None => QueryNotFound
         }
     case Get(testID) =>
-      val get = db.query[ConfigSchema]
+      val get = db.query[TestConfiguration]
         .whereEqual("testID", testID)
         .fetchOne()
       get match {

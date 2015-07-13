@@ -30,7 +30,7 @@ class DaemonSpec extends FlatSpec {
   val path = System.getenv().get("PATH")
 
   "Daemon" should "assign ticket for test request and get the result later" in {
-    val config = ConfigSchema(
+    val config = TestConfiguration(
       projectDirectory = "vendor",
       hipDirectory = "../fixtures/hip",
       sleekDirectory = "../fixtures/sleek",

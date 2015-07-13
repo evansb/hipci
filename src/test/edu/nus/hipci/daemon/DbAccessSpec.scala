@@ -19,7 +19,7 @@ class DbAccessSpec extends FlatSpec {
   import edu.nus.hipci.daemon.response._
 
   private object TestDb extends Instance(
-    entities = Set(Entity[GenTest](), Entity[ConfigSchema]()),
+    entities = Set(Entity[GenTest](), Entity[TestConfiguration]()),
     url = "jdbc:h2:mem:hipci-test")
 
   val system = ActorSystem("hipci-test")
@@ -27,29 +27,29 @@ class DbAccessSpec extends FlatSpec {
   implicit val timeout = Timeout(1.seconds)
 
   "DbAccess" should "post and get entity" in {
-    val config = ConfigSchema(testID = "commit", sleekDirectory = "Hello World")
+    val config = TestConfiguration(testID = "commit", sleekDirectory = "Hello World")
     whenReady (subject ? Post(config)) {
       _ match {
-        case QueryOk(config) => config.asInstanceOf[ConfigSchema] shouldEqual config
+        case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
       }
     }
     whenReady (subject ? Get("commit")) {
       _ match {
-        case QueryOk(config) => config.asInstanceOf[ConfigSchema] shouldEqual config
+        case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
       }
     }
   }
 
   it should "post and put entity" in {
-    val config = ConfigSchema(testID = "commit2", sleekDirectory = "Hello World")
+    val config = TestConfiguration(testID = "commit2", sleekDirectory = "Hello World")
     whenReady (subject ? Post(config)) {
       _ match {
-        case QueryOk(config) => config.asInstanceOf[ConfigSchema] shouldEqual config
+        case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
       }
     }
     whenReady (subject ? Put("commit2", config.copy(sleekDirectory = "Hello New World"))) {
       _ match {
-        case QueryOk(config) => config.asInstanceOf[ConfigSchema].sleekDirectory shouldEqual "Hello New World"
+        case QueryOk(config) => config.asInstanceOf[TestConfiguration].sleekDirectory shouldEqual "Hello New World"
       }
     }
   }
@@ -61,7 +61,7 @@ class DbAccessSpec extends FlatSpec {
   }
 
   it should "return error if put to non existing entity" in {
-    whenReady (subject ? Put("commit4", ConfigSchema())) {
+    whenReady (subject ? Put("commit4", TestConfiguration())) {
       _ shouldBe QueryNotFound
     }
   }

@@ -9,7 +9,7 @@ import scala.collection.immutable.HashMap
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 
-object ConfigSchema {
+object TestConfiguration {
   object Fields {
     val ProjectDirectory = "project_directory"
     val HipDirectory = "hip_directory"
@@ -23,7 +23,7 @@ object ConfigSchema {
   }
 }
 
-case class ConfigSchema
+case class TestConfiguration
 (
   /* ID of the test, taken from commit ID and hash of the config file */
   testID: String = "",

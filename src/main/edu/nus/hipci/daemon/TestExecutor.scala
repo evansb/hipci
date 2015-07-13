@@ -92,7 +92,7 @@ class TestExecutor extends Component {
    * @param config The config schema
    * @return Output of the execution
    */
-  private def executeConfig(config: ConfigSchema) : Promise[TestResult] = {
+  private def executeConfig(config: TestConfiguration) : Promise[TestResult] = {
     val promise = Promise[TestResult]
     val init = Future { Map.empty[String, Set[GenTest]] }
     config.tests.foldLeft(init)({ (acc, entry) =>

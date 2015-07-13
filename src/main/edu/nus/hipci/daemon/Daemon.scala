@@ -12,7 +12,7 @@ import com.typesafe.config.ConfigFactory
 
 import edu.nus.hipci.cli.Logger
 import edu.nus.hipci.cli.request.Terminate
-import edu.nus.hipci.common.{Component, ConfigSchema, ComponentDescriptor}
+import edu.nus.hipci.common.{Component, TestConfiguration, ComponentDescriptor}
 
 /**
  * Receives test submission and assign tickets.
@@ -86,7 +86,7 @@ class Daemon extends Component {
   private val cache: mutable.HashMap[String, (Long, Promise[TestResult])] = mutable.HashMap.empty
   protected val logger = Logger("")
 
-  private def submitTest(config: ConfigSchema)(implicit executionContext: ExecutionContext) = {
+  private def submitTest(config: TestConfiguration)(implicit executionContext: ExecutionContext) = {
     val testExecutor = loadComponent(TestExecutor)
     val ticket = config.hashCode().toString
     logger.good(s"Submitting ${ticket} to daemon")

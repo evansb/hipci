@@ -27,7 +27,7 @@ class TestExecutorSpec extends FlatSpec {
   val path = System.getenv().get("PATH")
 
   "TestExecutor" should "execute simple HIP/SLEEK test suite" in {
-    val config = ConfigSchema(
+    val config = TestConfiguration(
       projectDirectory = "vendor",
       hipDirectory = "../fixtures/hip",
       sleekDirectory = "../fixtures/sleek",

@@ -11,29 +11,29 @@ import edu.nus.hipci._
 import edu.nus.hipci.common._
 
 /**
- * Creates a ConfigSchema from a Config object.
+ * Creates a TestConfiguration from a Config object.
  *
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
-object ConfigSchemaFactory extends CLIComponentDescriptor {
-  val name = "ConfigSchemaFactory"
+object TestConfigurationFactory extends CLIComponentDescriptor {
+  val name = "TestConfigurationFactory"
   val subComponents = List.empty
-  val props = Props[ConfigSchemaFactory]
+  val props = Props[TestConfigurationFactory]
 }
 
-class ConfigSchemaFactory extends CLIComponent {
-  val descriptor = ConfigSchemaFactory
+class TestConfigurationFactory extends CLIComponent {
+  val descriptor = TestConfigurationFactory
 
-  protected def fromConfig(config: Config): Try[ConfigSchema] = {
-    import ConfigSchema.Fields._
+  protected def fromConfig(config: Config): Try[TestConfiguration] = {
+    import TestConfiguration.Fields._
     try {
-      val defaultSchema = ConfigSchema()
+      val defaultSchema = TestConfiguration()
       val projectDirectory = config.getOrElse[String](ProjectDirectory, defaultSchema.projectDirectory)
       val hipDirectory = config.getOrElse[String](HipDirectory, defaultSchema.hipDirectory)
       val sleekDirectory = config.getOrElse[String](SleekDirectory, defaultSchema.sleekDirectory)
       val timeout = config.getOrElse[Long](Timeout, defaultSchema.timeout)
       val tests = collectTestsFromConfig(config)
-      Success(ConfigSchema("", projectDirectory, hipDirectory, sleekDirectory, timeout, tests))
+      Success(TestConfiguration("", projectDirectory, hipDirectory, sleekDirectory, timeout, tests))
     } catch {
       case e:InvalidHipSpec => Failure(e)
     }
@@ -72,7 +72,7 @@ class ConfigSchemaFactory extends CLIComponent {
   }
 
   private def collectTestsFromConfig(config: Config) = {
-    import ConfigSchema._
+    import TestConfiguration._
     import scala.collection.JavaConverters._
     type JList[T] = java.util.List[T]
 
