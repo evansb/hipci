@@ -107,8 +107,12 @@ class TestExecutor extends Component {
           m + ((name, result))
       }
     }).andThen({
-      case Success(pool) => promise.success(TestComplete(System.currentTimeMillis, config.copy(tests = pool)))
-      case Failure(exc) => promise.failure(exc)
+      case Success(pool) =>
+        logger.info(s"Test ${config.testID} finished")
+        promise.success(TestComplete(config.copy(tests = pool)))
+      case Failure(exc) =>
+        logger.bad(s"Test ${config.testID} failed")
+        promise.failure(exc)
     })
     promise
   }

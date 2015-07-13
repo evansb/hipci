@@ -12,6 +12,11 @@ import edu.nus.hipci.common._
  */
 
 object DbAccess {
+
+  object defaultDatabase extends Instance(
+    entities = Set(Entity[GenTest](), Entity[TestConfiguration]()),
+    url = "jdbc:h2:mem:hipci-test")
+
   def apply(db: Instance) = {
     new ComponentDescriptor  {
       val name = "DbAccess"
@@ -27,23 +32,36 @@ class DbAccess(db: Instance) extends Component {
 
   protected val descriptor = DbAccess(db)
 
+  private val logger = Logging.toStdout()
+
   protected def handleQuery(query: DbQuery) = query match {
-    case Post(entity) => QueryOk(db.save(entity))
+    case Post(entity) =>
+      logger.good(s"POST ${ entity.testID }")
+      QueryOk(db.save(entity))
     case Put(testID, newEntity) =>
-        val get = db.query[TestConfiguration]
-          .whereEqual("testID", testID)
-          .fetchOne()
-        get match {
-          case Some(_) => QueryOk(db.save(newEntity))
-          case None => QueryNotFound
-        }
-    case Get(testID) =>
       val get = db.query[TestConfiguration]
         .whereEqual("testID", testID)
         .fetchOne()
       get match {
-        case Some(e) => QueryOk(e)
-        case None => QueryNotFound
+        case Some(_) =>
+          logger.good(s"PUT ${ newEntity.testID }")
+          QueryOk(db.save(newEntity))
+        case None =>
+          logger.bad(s"404 ${ newEntity.testID }")
+          QueryNotFound
+      }
+    case Get(testID) =>
+      logger.good(s"GET ${ testID }")
+      val get = db.query[TestConfiguration]
+        .whereEqual("testID", testID)
+        .fetchOne()
+      get match {
+        case Some(e) =>
+          logger.good(s"OK ${ testID }")
+          QueryOk(e)
+        case None =>
+          logger.bad(s"404 ${ testID }")
+          QueryNotFound
       }
   }
 

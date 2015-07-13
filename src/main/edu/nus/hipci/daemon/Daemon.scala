@@ -21,7 +21,8 @@ object Daemon extends ComponentDescriptor {
   import request._
   val name = "Daemon"
   val props = Props[Daemon]
-  val subComponents = List(TestExecutor)
+  private val db = DbAccess(DbAccess.defaultDatabase)
+  val subComponents = List(TestExecutor, db)
   val defaultConfig = ConfigFactory.parseString(
   """
     | akka {
@@ -91,22 +92,31 @@ class Daemon extends Component {
     logger.good(s"Submitting ${ticket} to daemon")
     cache.get(ticket) match {
       case None =>
-        val promise = Await.result(testExecutor ? SubmitTest(config), 1.seconds).asInstanceOf[Promise[TestResult]]
-        cache(ticket) = (System.currentTimeMillis, promise)
-        TicketAssigned(ticket)
+        findInDatabase(ticket) getOrElse {
+          val promise = Await.result(testExecutor ? SubmitTest(config), 1.seconds).asInstanceOf[Promise[TestResult]]
+          cache(ticket) = (System.currentTimeMillis, promise)
+          TicketAssigned(ticket)
+        }
       case Some(_) => checkTicket(ticket)
+    }
+  }
+
+  private def findInDatabase(ticket: String) = {
+    val db = loadComponent(Daemon.db)
+    Await.result(db ? Get(ticket), timeout.duration) match {
+      case QueryNotFound => None
+      case QueryOk(config) =>
+        cache(ticket) = (System.currentTimeMillis(), Promise.successful(TestComplete(config)))
+        Some(TestComplete(config))
     }
   }
 
   private def checkTicket(ticket: String) = {
     cache.get(ticket) match {
-      case None => TicketNotFound(ticket)
+      case None =>
+        findInDatabase(ticket) getOrElse TicketNotFound(ticket)
       case Some((since, promise)) =>
-        if (promise.isCompleted) {
-          Await.result(promise.future, 1.seconds)
-        } else {
-          TestInQueue(ticket, since)
-        }
+        TestInQueue(ticket, since)
     }
   }
 

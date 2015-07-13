@@ -57,8 +57,8 @@ class CommandDispatcher extends CLIComponent {
           val daemon = Daemon.getDaemon(context)
           val result = Await.result(daemon ? SubmitTest(testConfiguration), timeout.duration).asInstanceOf[TestResult]
           result match {
-            case TestComplete(completionTime, config) =>
-              logger.good(s"Test completed in ${ completionTime / 1000 } seconds.")
+            case TestComplete(config) =>
+              logger.good(s"Test ${config.testID} has been completed.")
               val reporter = loadComponent(TestReporter)
               val report = Await.result(reporter ? ReportSingleString(config), timeout.duration).asInstanceOf[String]
               Console.out.println(report)

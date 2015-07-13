@@ -27,7 +27,7 @@ object response {
   case class TestInQueue(ticket: String, since: Long) extends TestResult
   case class TicketAssigned(ticket: String) extends TestResult
   case class TicketNotFound(ticket: String) extends TestResult
-  case class TestComplete(duration: Long, result: TestConfiguration) extends TestResult
+  case class TestComplete(result: TestConfiguration) extends TestResult
   case class CompilationError(error: String) extends TestResult
   case class RuntimeError(error: String) extends TestResult
   case object ACK
