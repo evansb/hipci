@@ -2,16 +2,22 @@ package edu.nus.hipci.hg
 
 import java.io._
 import java.nio.file.Path
+import edu.nus.hipci.hg.request.GetCurrentRevision
 
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.sys.process._
 import scala.sys.process.ProcessLogger
+import akka.actor._
 
-import edu.nus.hipci.common.Logging
+import edu.nus.hipci.common._
 
-object Hg {
+object Hg extends ComponentDescriptor {
+  val name = "Hg"
+  val props = Props[Hg]
+  val subComponents = List.empty
+}
+
+class Hg extends Component {
+  protected val descriptor = Hg
   private val logger = Logging.toStdout()
 
   private def runCommand(cmd: Seq[String], workingDir: File): (Int, String, String) = {
@@ -25,7 +31,7 @@ object Hg {
     (exitValue, stdout.toString, stderr.toString)
   }
 
-  def getCurrentRevision(repo: Path) : Future[Option[(String, Boolean)]] = Future {
+  private def getCurrentRevision(repo: Path) = {
     runCommand(Seq("hg", "identify"), repo.toFile) match {
       case (0, out, _)  =>
         if (out.endsWith("+")) {
@@ -37,5 +43,10 @@ object Hg {
         logger.error("Mercurial error:\n" + err + "\n")
         None
     }
+  }
+
+  override def receive = {
+    case GetCurrentRevision(repoDir) => sender ! getCurrentRevision(repoDir)
+    case other => super.receive(other)
   }
 }

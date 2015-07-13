@@ -8,6 +8,7 @@ import scala.util.{Try, Success, Failure}
 import scala.collection.JavaConversions
 import scala.collection.immutable.{HashSet, HashMap}
 import akka.actor.Props
+import akka.pattern._
 import com.typesafe.config.Config
 import com.github.kxbmap.configs._
 
@@ -22,13 +23,15 @@ import edu.nus.hipci.hg.Hg
  */
 object TestConfigurationFactory extends CLIComponentDescriptor {
   val name = "TestConfigurationFactory"
-  val subComponents = List.empty
+  val subComponents = List(Hg)
   val props = Props[TestConfigurationFactory]
 }
 
 class TestConfigurationFactory extends CLIComponent {
-  val descriptor = TestConfigurationFactory
+  import hg.request._
+  import hg.response._
 
+  val descriptor = TestConfigurationFactory
   protected def fromConfig(config: Config): Try[TestConfiguration] = {
     import TestConfiguration.Fields._
     try {
@@ -46,10 +49,12 @@ class TestConfigurationFactory extends CLIComponent {
   }
 
   private def computeTestID(projectDirectory: String, config: Config) : String = {
-    Await.result(Hg.getCurrentRevision(Paths.get(projectDirectory)), 3.seconds) match {
-      case None => throw InvalidRepository(projectDirectory)
-      case Some((_, true)) => throw DirtyRepository(projectDirectory)
-      case Some((rev, false)) => rev
+    val hg = loadComponent(Hg)
+    Await.result(hg ? GetCurrentRevision(Paths.get(projectDirectory)), 3.seconds) match {
+      case RevisionDirty(rev) =>
+        logger.error(DirtyRepository(projectDirectory).getMessage)
+        rev
+      case RevisionClean(rev) => rev
     }
   }
 
