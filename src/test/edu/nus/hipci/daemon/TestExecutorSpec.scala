@@ -9,6 +9,7 @@ import akka.actor.ActorSystem
 import akka.pattern._
 import akka.util.Timeout
 import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 
 import edu.nus.hipci.common._
@@ -51,8 +52,9 @@ class TestExecutorSpec extends FlatSpec {
     whenReady(subject ? SubmitTest(config), timeout(patience)) {
       _ match {
         case promise: Promise[_] =>
-          assert(Await.result(promise.future, akkaTimeout.duration)
-            .asInstanceOf[TestComplete].result.equals(config))
+          Await
+            .result(promise.future, akkaTimeout.duration)
+            .asInstanceOf[TestComplete].result shouldEqual config
         case _ => assert(false)
       }
     }

@@ -13,6 +13,14 @@ import edu.nus.hipci.common._
 
 object DbAccess {
 
+  private case class PTestConfiguration
+  ( testID: String,
+    projectDirectory : String,
+    hipDirectory : String,
+    sleekDirectory : String,
+    timeout: Long,
+    tests: Map[String, Set[GenTest with Persisted]])
+
   object defaultDatabase extends Instance(
     entities = Set(Entity[GenTest](), Entity[TestConfiguration]()),
     url = "jdbc:h2:mem:hipci-test")
@@ -29,19 +37,18 @@ object DbAccess {
 class DbAccess(db: Instance) extends Component {
   import request._
   import response._
-
   protected val descriptor = DbAccess(db)
 
   private val logger = Logging.toStdout()
 
   private def saveTestConfiguration(entity: TestConfiguration) = {
-    val persistedTests = entity.tests.mapValues { s => s.map { t => db.save(t) } }
-    db.save(entity.copy(tests = persistedTests))
+    entity.tests.mapValues { _.map (db.save(_)) }
+    db.save(entity)
   }
 
   protected def handleQuery(query: DbQuery) = query match {
     case Post(entity) =>
-      logger.good(s"POST ${ entity.testID }")
+      logger good s"POST ${ entity.testID }"
       QueryOk(saveTestConfiguration(entity))
     case Put(testID, newEntity) =>
       val get = db.query[TestConfiguration]
@@ -49,23 +56,23 @@ class DbAccess(db: Instance) extends Component {
         .fetchOne()
       get match {
         case Some(_) =>
-          logger.good(s"PUT ${ newEntity.testID }")
+          logger good s"PUT ${ newEntity.testID }"
           QueryOk(saveTestConfiguration(newEntity))
         case None =>
-          logger.bad(s"404 ${ newEntity.testID }")
+          logger bad s"404 ${ newEntity.testID }"
           QueryNotFound
       }
     case Get(testID) =>
-      logger.good(s"GET ${ testID }")
+      logger good s"GET ${ testID }"
       val get = db.query[TestConfiguration]
         .whereEqual("testID", testID)
         .fetchOne()
       get match {
         case Some(e) =>
-          logger.good(s"OK ${ testID }")
+          logger good s"OK ${ testID }"
           QueryOk(e)
         case None =>
-          logger.bad(s"404 ${ testID }")
+          logger bad s"404 ${ testID }"
           QueryNotFound
       }
   }
