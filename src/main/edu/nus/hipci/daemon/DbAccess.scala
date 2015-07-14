@@ -34,10 +34,15 @@ class DbAccess(db: Instance) extends Component {
 
   private val logger = Logging.toStdout()
 
+  private def saveTestConfiguration(entity: TestConfiguration) = {
+    val persistedTests = entity.tests.mapValues { s => s.map { t => db.save(t) } }
+    db.save(entity.copy(tests = persistedTests))
+  }
+
   protected def handleQuery(query: DbQuery) = query match {
     case Post(entity) =>
       logger.good(s"POST ${ entity.testID }")
-      QueryOk(db.save(entity))
+      QueryOk(saveTestConfiguration(entity))
     case Put(testID, newEntity) =>
       val get = db.query[TestConfiguration]
         .whereEqual("testID", testID)
@@ -45,7 +50,7 @@ class DbAccess(db: Instance) extends Component {
       get match {
         case Some(_) =>
           logger.good(s"PUT ${ newEntity.testID }")
-          QueryOk(db.save(newEntity))
+          QueryOk(saveTestConfiguration(newEntity))
         case None =>
           logger.bad(s"404 ${ newEntity.testID }")
           QueryNotFound
