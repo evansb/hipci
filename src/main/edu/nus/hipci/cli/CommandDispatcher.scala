@@ -88,8 +88,7 @@ class CommandDispatcher extends CLIComponent {
 
   implicit object StartCommandDispatcher extends Dispatcher[StartCommand] {
     override def dispatch(command: StartCommand): Request = {
-      Daemon.start()
-      Terminate(0)
+      KeepAlive(Daemon.start())
     }
   }
 
@@ -102,7 +101,9 @@ class CommandDispatcher extends CLIComponent {
 
   implicit object HelpCommandDispatcher extends Dispatcher[HelpCommand] {
     override def dispatch(command: HelpCommand): Request = {
-      loadComponent(CommandParser) ! ShowUsage
+      val usage = Await.result(loadComponent(CommandParser) ? ShowUsage,
+        timeout.duration).asInstanceOf[String]
+      Console.out.println(usage)
       Terminate(0)
     }
   }
@@ -116,12 +117,12 @@ class CommandDispatcher extends CLIComponent {
 
   implicit object AllDispatcher extends Dispatcher[Command] {
     override def dispatch(command: Command) = command match {
-      case p@(RunCommand(_,_)) => dispatch(p)
-      case p@(DiffCommand(_,_)) => dispatch(p)
-      case p@(HelpCommand()) => dispatch(p)
-      case p@(StartCommand()) => dispatch(p)
-      case p@(StopCommand()) => dispatch(p)
-      case p@(EmptyCommand()) => dispatch(p)
+      case p@(RunCommand(_,_)) => RunCommandDispatcher.dispatch(p)
+      case p@(DiffCommand(_,_)) => DiffCommandDispatcher.dispatch(p)
+      case p@(HelpCommand()) => HelpCommandDispatcher.dispatch(p)
+      case p@(StartCommand()) => StartCommandDispatcher.dispatch(p)
+      case p@(StopCommand()) => StopCommandDispatcher.dispatch(p)
+      case p@(EmptyCommand()) => EmptyCommandDispatcher.dispatch(p)
     }
   }
 

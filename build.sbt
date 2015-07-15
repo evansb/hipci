@@ -14,11 +14,11 @@ lazy val scalaTest = ("org.scalatest" %% "scalatest" % "2.2.4" % "test").exclude
   ExclusionRule(name = "scala-parser-combinators")
 )
 
-lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.4-SNAPSHOT"
+lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.3.12"
 
-lazy val akkaRemote = "com.typesafe.akka" %% "akka-remote" % "2.4-SNAPSHOT"
+lazy val akkaRemote = "com.typesafe.akka" %% "akka-remote" % "2.3.12"
 
-lazy val typesafeConfig = "com.typesafe" % "config" % "1.3.0"
+lazy val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
 lazy val config = "com.github.kxbmap" %% "configs" % "0.2.4"
 

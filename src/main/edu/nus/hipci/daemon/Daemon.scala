@@ -26,6 +26,7 @@ object Daemon extends ComponentDescriptor {
   val defaultConfig = ConfigFactory.parseString(
   """
     | akka {
+    |   loglevel = "ERROR"
     |   actor {
     |     provider = "akka.remote.RemoteActorRefProvider"
     |   }
@@ -34,8 +35,6 @@ object Daemon extends ComponentDescriptor {
     |       hostname = "127.0.0.1"
     |       port = 2552
     |     }
-    |    log-sent-messages = on
-    |    log-received-messages = on
     |   }
     | }
   """.stripMargin)
@@ -43,6 +42,7 @@ object Daemon extends ComponentDescriptor {
   val defaultClientConfig = ConfigFactory.parseString(
     """
       | akka {
+      |  loglevel = "ERROR"
       |  actor {
       |    provider = "akka.remote.RemoteActorRefProvider"
       |  }
@@ -51,8 +51,6 @@ object Daemon extends ComponentDescriptor {
       |      hostname = "127.0.0.1"
       |      port = 0
       |    }
-      |    log-sent-messages = on
-      |    log-received-messages = on
       |  }
       |}
     """.stripMargin)
@@ -123,10 +121,10 @@ class Daemon extends Component {
   override def receive = {
     case Ping => sender ! ACK
     case Introduce(sys) =>
-      logger.info(s"Introduced to ${sys}")
+      logger.good(s"hipci daemon started")
       system = sys
     case StopDaemon =>
-      logger.info(s"Daemon stopping...")
+      logger.bad(s"stopping daemon...")
       if (system != null) system ! Terminate(0)
     case SubmitTest(config) => sender ! submitTest(config)
     case CheckTicket(ticket) => sender ! checkTicket(ticket)
