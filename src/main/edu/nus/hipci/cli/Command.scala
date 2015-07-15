@@ -6,12 +6,14 @@ package edu.nus.hipci.cli
  *
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
-sealed abstract class Command
+
+sealed trait Command
 
 /**
  * Models a run command.
  */
-case class RunCommand(config: String = "", arguments: List[String] = List()) extends Command
+case class RunCommand(config: String = "", arguments: List[String] = List())
+  extends Command
 
 /**
  * Models a diff command.
@@ -23,20 +25,20 @@ case class DiffCommand(configFile: String ="",
 /**
  * Models a help command.
  */
-case object HelpCommand extends Command
+case class HelpCommand() extends Command
 
 /**
  * Models an empty command, also a zero value for Command
  */
-case object EmptyCommand extends Command
+case class EmptyCommand() extends Command
 
 /**
  * Models a start daemon command
  */
-case object StartCommand extends Command
+case class StartCommand() extends Command
 
 /**
  * Models a stop daemon command
  */
-case object StopCommand extends Command
+case class StopCommand() extends Command
 

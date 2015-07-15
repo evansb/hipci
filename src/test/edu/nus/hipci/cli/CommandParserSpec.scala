@@ -41,31 +41,31 @@ class CommandParserSpec extends FlatSpec {
 
   it should "parse hipci help" in {
     whenReady(subject ? ParseArguments(Seq("help"))) {
-      _ shouldEqual ParsedArguments(HelpCommand)
+      _ shouldEqual ParsedArguments(HelpCommand())
     }
   }
 
   it should "parse hipci start" in {
     whenReady(subject ? ParseArguments(Seq("start"))) {
-      _ shouldEqual ParsedArguments(StartCommand)
+      _ shouldEqual ParsedArguments(StartCommand())
     }
   }
 
   it should "parse hipci stop" in {
     whenReady(subject ? ParseArguments(Seq("stop"))) {
-      _ shouldEqual ParsedArguments(StopCommand)
+      _ shouldEqual ParsedArguments(StopCommand())
     }
   }
 
   it should "fail to parse hipci run" in {
     whenReady(subject ? ParseArguments(Seq("run"))) {
-      _ shouldEqual ParsedArguments(EmptyCommand)
+      _ shouldEqual ParsedArguments(EmptyCommand())
     }
   }
 
   it should "fail to parse hipci diff rev1" in {
     whenReady(subject ? ParseArguments(Seq("diff", "rev1"))) {
-      _ shouldEqual ParsedArguments(EmptyCommand)
+      _ shouldEqual ParsedArguments(EmptyCommand())
     }
   }
 }

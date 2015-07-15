@@ -19,7 +19,7 @@ class CommandParser extends CLIComponent {
   val descriptor: CLIComponentDescriptor = CommandParser
 
   implicit object ZeroCommand extends Zero[Command] {
-    def zero = EmptyCommand
+    def zero = EmptyCommand()
   }
 
   protected object parser extends OptionParser[Command](AppName) {
@@ -27,7 +27,7 @@ class CommandParser extends CLIComponent {
       arg[String]("config_file") required() action {
         (cf, previous) => previous match {
           case RunCommand(_, as) => RunCommand(cf, as)
-          case _ => EmptyCommand
+          case _ => EmptyCommand()
         }
       }
 
@@ -35,7 +35,7 @@ class CommandParser extends CLIComponent {
       arg[String]("config_file") required() action {
         (cf, previous) => previous match {
           case DiffCommand(_, as) => DiffCommand(cf, as)
-          case _ => EmptyCommand
+          case _ => EmptyCommand()
         }
       }
 
@@ -43,14 +43,14 @@ class CommandParser extends CLIComponent {
       arg[String]("suite") optional() unbounded() action {
         (a, previous) => previous match {
           case RunCommand(cf,as) => RunCommand(cf,a::as)
-          case _ => EmptyCommand
+          case _ => EmptyCommand()
         }
       }
 
     val revisions = arg[String]("revision") required() unbounded() action {
       (revision, previous) => previous match {
         case DiffCommand(cf, rs) => DiffCommand(cf, revision::rs)
-        case _ => EmptyCommand
+        case _ => EmptyCommand()
       }
     }
 
@@ -58,36 +58,36 @@ class CommandParser extends CLIComponent {
 
     cmd("run").text("Run a test configuration").action({
       (_, previous) => previous match {
-        case EmptyCommand => RunCommand("", List())
-        case _ => EmptyCommand
+        case EmptyCommand() => RunCommand("", List())
+        case _ => EmptyCommand()
       }
     }).children(configFile.children(params))
 
     cmd("diff").text("Diff test outcome of several revisions").action({
       (_, previous) => previous match {
-        case EmptyCommand => DiffCommand()
-        case _ => EmptyCommand
+        case EmptyCommand() => DiffCommand()
+        case _ => EmptyCommand()
       }
     }).children(configFile2.children(revisions))
 
     cmd("start") text "Start the hipci daemon" action {
       (_, previous) => previous match {
-        case EmptyCommand => StartCommand
-        case _ => EmptyCommand
+        case EmptyCommand() => StartCommand()
+        case _ => EmptyCommand()
       }
     }
 
     cmd("stop") text "Stop the hipci daemon" action {
       (_, previous) => previous match {
-        case EmptyCommand => StopCommand
-        case _ => EmptyCommand
+        case EmptyCommand() => StopCommand()
+        case _ => EmptyCommand()
       }
     }
 
     cmd("help") text "Show the usage help" action {
       (_, previous) => previous match {
-        case EmptyCommand => HelpCommand
-        case _ => EmptyCommand
+        case EmptyCommand() => HelpCommand()
+        case _ => EmptyCommand()
       }
     }
   }
@@ -96,7 +96,8 @@ class CommandParser extends CLIComponent {
   import response._
   override def receive = {
     case ParseArguments(args) =>
-      sender ! ParsedArguments(parser.parse(args, EmptyCommand).getOrElse(EmptyCommand))
+      sender ! ParsedArguments(parser.parse(args,
+        EmptyCommand()).getOrElse(EmptyCommand()))
     case ShowUsage => sender ! parser.usage
     case other => super.receive(other)
   }
