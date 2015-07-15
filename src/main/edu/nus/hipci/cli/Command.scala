@@ -16,7 +16,9 @@ case class RunCommand(config: String = "", arguments: List[String] = List()) ext
 /**
  * Models a diff command.
  */
-case class DiffCommand(revisions: (String, String) = ("", "")) extends Command
+case class DiffCommand(configFile: String ="",
+                       revisions: List[String] = List())
+  extends Command
 
 /**
  * Models a help command.

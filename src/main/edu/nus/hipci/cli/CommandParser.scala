@@ -24,51 +24,51 @@ class CommandParser extends CLIComponent {
 
   protected object parser extends OptionParser[Command](AppName) {
     val configFile =
-      arg[String]("config file") required() action {
-        (arg, previous) => previous match {
-          case previous@RunCommand(_, _) => previous.copy(config = arg)
+      arg[String]("config_file") required() action {
+        (cf, previous) => previous match {
+          case RunCommand(_, as) => RunCommand(cf, as)
+          case _ => EmptyCommand
+        }
+      }
+
+    val configFile2 =
+      arg[String]("config_file") required() action {
+        (cf, previous) => previous match {
+          case DiffCommand(_, as) => DiffCommand(cf, as)
           case _ => EmptyCommand
         }
       }
 
     val params =
-      arg[String]("arg1, arg2,...") optional() unbounded() action {
-        (arg, previous) => previous match {
-          case previous@RunCommand(_, oldArgs) => previous.copy(arguments = oldArgs ++ List(arg))
+      arg[String]("suite") optional() unbounded() action {
+        (a, previous) => previous match {
+          case RunCommand(cf,as) => RunCommand(cf,a::as)
           case _ => EmptyCommand
         }
       }
 
-    val revision1 =
-      arg[String]("revision1") required() action {
-        (arg, previous) => previous match {
-          case previous@DiffCommand((_, s)) => previous.copy(revisions = (arg, s))
-          case _ => EmptyCommand
-        }
-      }
-
-    val revision2 = arg[String]("revision2") required() action {
-      (arg, previous) => previous match {
-        case previous@DiffCommand((f, _)) => previous.copy(revisions = (f, arg))
+    val revisions = arg[String]("revision") required() unbounded() action {
+      (revision, previous) => previous match {
+        case DiffCommand(cf, rs) => DiffCommand(cf, revision::rs)
         case _ => EmptyCommand
       }
     }
 
     head(AppName, AppVersion)
 
-    cmd("run").text("run <config file> [arg1, arg2...]").action({
+    cmd("run").text("Run a test configuration").action({
       (_, previous) => previous match {
         case EmptyCommand => RunCommand("", List())
         case _ => EmptyCommand
       }
     }).children(configFile.children(params))
 
-    cmd("diff").text("diff <revision 1> <revision 2>").action({
+    cmd("diff").text("Diff test outcome of several revisions").action({
       (_, previous) => previous match {
-        case EmptyCommand => DiffCommand(("", ""))
+        case EmptyCommand => DiffCommand()
         case _ => EmptyCommand
       }
-    }).children(revision1.children(revision2))
+    }).children(configFile2.children(revisions))
 
     cmd("start") text "Start the hipci daemon" action {
       (_, previous) => previous match {

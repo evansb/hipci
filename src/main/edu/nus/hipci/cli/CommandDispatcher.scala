@@ -74,8 +74,7 @@ class CommandDispatcher extends CLIComponent {
       case HelpCommand =>
         Console.out.println(Await.result(commandParser ? request.ShowUsage, timeout.duration).asInstanceOf[String])
         Terminate(0)
-      case DiffCommand((revision1, revision2)) =>
-        logger.good(s"Comparing $revision1 and $revision2")
+      case DiffCommand(configFile, revisions) =>
         Terminate(0)
       case StartCommand =>
         KeepAlive(Daemon.start())

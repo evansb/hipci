@@ -6,7 +6,7 @@ import akka.pattern._
 import akka.util.Timeout
 import org.scalatest.concurrent.ScalaFutures._
 import org.scalatest._
-import Matchers._
+import org.scalatest.Matchers._
 
 /**
  * Tests the functionality of the command parser.
@@ -28,13 +28,14 @@ class CommandParserSpec extends FlatSpec {
 
   it should "parse hipci run app.conf arg1 arg2" in {
     whenReady(subject ? ParseArguments(Seq("run", "app.conf", "arg1", "arg2"))) {
-      _ shouldEqual ParsedArguments(RunCommand("app.conf", List("arg1", "arg2")))
+      _ shouldEqual ParsedArguments(RunCommand("app.conf", List("arg2", "arg1")))
     }
   }
 
   it should "parse hipci diff rev1 rev2" in {
-    whenReady(subject ? ParseArguments(Seq("diff", "rev1", "rev2"))) {
-      _ shouldEqual ParsedArguments(DiffCommand(("rev1","rev2")))
+    whenReady(subject ? ParseArguments(Seq("diff", "app.conf", "rev1",
+      "rev2"))) {
+      _ shouldEqual ParsedArguments(DiffCommand("app.conf", List("rev2", "rev1")))
     }
   }
 
