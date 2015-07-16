@@ -1,4 +1,4 @@
-package edu.nus.hipci.common
+package edu.nus.hipci.core
 
 import pl.project13.scala.rainbow._
 

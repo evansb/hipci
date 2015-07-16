@@ -3,7 +3,7 @@ package edu.nus.hipci.daemon
 import akka.actor.Props
 import sorm._
 
-import edu.nus.hipci.common._
+import edu.nus.hipci.core._
 
 /**
  * Actor for accessing database
@@ -12,19 +12,6 @@ import edu.nus.hipci.common._
  */
 
 object DbAccess {
-
-  private case class PTestConfiguration
-  ( testID: String,
-    projectDirectory : String,
-    hipDirectory : String,
-    sleekDirectory : String,
-    timeout: Long,
-    tests: Map[String, Set[GenTest with Persisted]])
-
-  object defaultDatabase extends Instance(
-    entities = Set(Entity[GenTest](), Entity[TestConfiguration]()),
-    url = "jdbc:h2:mem:hipci-test")
-
   def apply(db: Instance) = {
     new ComponentDescriptor  {
       val name = "DbAccess"

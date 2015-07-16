@@ -13,7 +13,7 @@ import com.typesafe.config.Config
 import com.github.kxbmap.configs._
 
 import edu.nus.hipci._
-import edu.nus.hipci.common._
+import edu.nus.hipci.core._
 import edu.nus.hipci.hg.Hg
 
 /**

@@ -1,7 +1,7 @@
 package edu.nus.hipci.util
 
 import akka.actor.Props
-import edu.nus.hipci.common.{Diff3, Component, ComponentDescriptor, GenTest}
+import edu.nus.hipci.core.{Diff3, Component, ComponentDescriptor, GenTest}
 
 /**
  * Analyze output and compare it to reference output, and generate a report string.

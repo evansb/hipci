@@ -2,7 +2,7 @@ package edu.nus.hipci.cli
 
 import akka.actor.Props
 import scopt._
-import edu.nus.hipci._
+import edu.nus.hipci.core._
 
 /**
  * Parses a command line arguments to a Command object.

@@ -1,4 +1,4 @@
-package edu.nus.hipci.common
+package edu.nus.hipci.core
 
 import scala.concurrent.duration._
 import akka.actor._

@@ -3,7 +3,7 @@ package edu.nus.hipci.cli
 import scala.language.existentials
 import akka.actor._
 
-import edu.nus.hipci.common.{TestConfiguration, Diff3}
+import edu.nus.hipci.core.{TestConfiguration, Diff3}
 
 /**
  * Requests and Responses defined at this package
@@ -11,12 +11,12 @@ import edu.nus.hipci.common.{TestConfiguration, Diff3}
 
 object request {
   sealed abstract class Request
-  case class InitCLI(system: ActorSystem, args: Seq[String]) extends Request
+  case class InitCLI(args: Seq[String]) extends Request
   case class ParseArguments(arguments: Seq[String]) extends Request
   case class Config(config: com.typesafe.config.Config) extends Request
   case object ShowUsage extends Request
   case class Terminate(exitCode: Int) extends Request
-  case class KeepAlive(waitFor: ActorRef) extends Request
+  case object KeepAlive extends Request
   case class ReportSingleString(config: TestConfiguration) extends Request
   case class ReportDiff2String(diff3: Diff3[_,_]) extends Request
   case class ReportDiff3String(diff3: Diff3[_,_]) extends Request

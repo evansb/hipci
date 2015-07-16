@@ -8,7 +8,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.sys.process._
 import akka.actor._
-import edu.nus.hipci.common._
+import edu.nus.hipci.core._
 
 object Hg extends ComponentDescriptor {
   val name = "Hg"

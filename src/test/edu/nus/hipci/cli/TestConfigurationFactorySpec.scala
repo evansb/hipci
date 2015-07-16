@@ -1,25 +1,26 @@
 package edu.nus.hipci.cli
 
-import org.scalatest.time.{Seconds, Millis, Span}
+import org.scalatest.time.{Seconds, Span}
 
 import scala.util.{Failure, Success}
 import scala.collection.immutable.Map
 import scala.concurrent.duration._
-import akka.actor.{Props, ActorSystem}
+import akka.actor.ActorSystem
 import akka.util.Timeout
 import akka.pattern._
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 
-import edu.nus.hipci.common._
+import edu.nus.hipci.core._
 
 /**
  * Tests the functionality of TestConfigurationFactory
  *
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
-class TestConfigurationFactorySpec extends FlatSpec with Matchers {
+class TestConfigurationFactorySpec extends FlatSpec {
   import request._
 
   val system = ActorSystem("hipci-test")

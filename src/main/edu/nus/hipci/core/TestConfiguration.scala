@@ -1,4 +1,4 @@
-package edu.nus.hipci.common
+package edu.nus.hipci.core
 
 import java.nio.file.Paths
 import scala.collection.immutable.HashMap

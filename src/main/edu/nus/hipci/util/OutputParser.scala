@@ -1,8 +1,7 @@
 package edu.nus.hipci.util
 
 import akka.actor.Props
-import edu.nus.hipci.common.{Component, ComponentDescriptor}
-import edu.nus.hipci._
+import edu.nus.hipci.core._
 
 /**
  * Parses various output

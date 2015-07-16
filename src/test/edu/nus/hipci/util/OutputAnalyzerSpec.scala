@@ -9,7 +9,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 
-import edu.nus.hipci.common._
+import edu.nus.hipci.core._
 
 /**
  * Test the functionality of OutputAnalyzer

@@ -1,4 +1,4 @@
-package edu.nus.hipci.common
+package edu.nus.hipci.core
 
 import akka.actor.{ActorSystem, ActorRef, Props}
 import scala.collection.mutable

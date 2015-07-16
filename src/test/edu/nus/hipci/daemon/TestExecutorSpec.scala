@@ -12,7 +12,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 
-import edu.nus.hipci.common._
+import edu.nus.hipci.core._
 
 /**
  * Test the functionality of TestExecutor
@@ -23,7 +23,7 @@ class TestExecutorSpec extends FlatSpec {
   import request._
   import response._
 
-  val system = ActorSystem("hipci-test", Daemon.defaultClientConfig)
+  val system = ActorSystem("hipci-test")
   TestExecutor.register(system)
   val subject = system.actorOf(TestExecutor.props, "TestExecutor")
   val patience = Span(10, Seconds)

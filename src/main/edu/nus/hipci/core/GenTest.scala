@@ -1,4 +1,4 @@
-package edu.nus.hipci.common
+package edu.nus.hipci.core
 
 /**
  * Generic test definition for both reference and output test.

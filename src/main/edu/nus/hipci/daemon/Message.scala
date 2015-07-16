@@ -1,7 +1,7 @@
 package edu.nus.hipci.daemon
 
 import akka.actor.ActorRef
-import edu.nus.hipci.common.TestConfiguration
+import edu.nus.hipci.core.TestConfiguration
 
 /**
  * Requests and Responses defined at this package

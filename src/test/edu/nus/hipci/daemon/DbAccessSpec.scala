@@ -1,5 +1,7 @@
 package edu.nus.hipci.daemon
 
+import org.scalatest.time.{Seconds, Span}
+
 import scala.concurrent.duration._
 import akka.actor.ActorSystem
 import akka.util.Timeout
@@ -7,8 +9,8 @@ import akka.pattern._
 import sorm._
 import org.scalatest._
 import org.scalatest.concurrent.ScalaFutures._
-import Matchers._
-import edu.nus.hipci.common._
+import org.scalatest.Matchers._
+import edu.nus.hipci.core._
 
 /**
  * Tests the functionality of the database access.
@@ -20,20 +22,22 @@ class DbAccessSpec extends FlatSpec {
 
   private object TestDb extends Instance(
     entities = Set(Entity[GenTest](), Entity[TestConfiguration]()),
-    url = "jdbc:h2:mem:hipci-test")
+    url = "jdbc:h2:mem:hipci-test",
+    poolSize = 2)
 
   val system = ActorSystem("hipci-test")
   val subject = system.actorOf(DbAccess(TestDb).props, "DbAccess")
-  implicit val timeout = Timeout(1.seconds)
+  implicit val akkaTimeout = Timeout(1.seconds)
+  val patience = Span(10, Seconds)
 
   "DbAccess" should "post and get entity" in {
     val config = TestConfiguration(testID = "commit", sleekDirectory = "Hello World")
-    whenReady (subject ? Post(config)) {
+    whenReady (subject ? Post(config), timeout(patience)) {
       _ match {
         case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
       }
     }
-    whenReady (subject ? Get("commit")) {
+    whenReady (subject ? Get("commit"), timeout(patience)) {
       _ match {
         case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
       }
@@ -42,12 +46,13 @@ class DbAccessSpec extends FlatSpec {
 
   it should "post and put entity" in {
     val config = TestConfiguration(testID = "commit2", sleekDirectory = "Hello World")
-    whenReady (subject ? Post(config)) {
+    whenReady (subject ? Post(config), timeout(patience)) {
       _ match {
         case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
       }
     }
-    whenReady (subject ? Put("commit2", config.copy(sleekDirectory = "Hello New World"))) {
+    whenReady (subject ? Put("commit2", config.copy(sleekDirectory = "Hello New World")),
+      timeout(patience)) {
       _ match {
         case QueryOk(config) => config.asInstanceOf[TestConfiguration].sleekDirectory shouldEqual "Hello New World"
       }
@@ -55,13 +60,13 @@ class DbAccessSpec extends FlatSpec {
   }
 
   it should "return error if get to non existing entity" in {
-    whenReady (subject ? Get("commit3")) {
+    whenReady (subject ? Get("commit3"), timeout(patience)) {
       _ shouldBe QueryNotFound
     }
   }
 
   it should "return error if put to non existing entity" in {
-    whenReady (subject ? Put("commit4", TestConfiguration())) {
+    whenReady (subject ? Put("commit4", TestConfiguration()), timeout(patience)) {
       _ shouldBe QueryNotFound
     }
   }

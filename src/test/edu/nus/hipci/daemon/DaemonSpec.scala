@@ -10,7 +10,7 @@ import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
 
-import edu.nus.hipci.common._
+import edu.nus.hipci.core._
 
 /**
  * Test the functionality of TestExecutor
@@ -21,10 +21,10 @@ class DaemonSpec extends FlatSpec {
   import request._
   import response._
 
-  Daemon.start()
+  new Thread(new Main()).start()
 
-  val system = ActorSystem("hipci-test", Daemon.defaultClientConfig)
-  val daemon = system.actorSelection("akka.tcp://hipcid@127.0.0.1:2552/user/Daemon")
+  val system = ActorSystem("hipci-test", DefaultClientConfig)
+  val daemon = system.actorSelection("akka.tcp://hipci@127.0.0.1:2552/user/Daemon")
   val subject = Forwarder.newForwarder(system, daemon)
   implicit val timeout = Timeout(1.seconds)
   val path = System.getenv().get("PATH")

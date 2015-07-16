@@ -1,6 +1,6 @@
 package edu.nus.hipci.util
 
-import edu.nus.hipci.common.GenTest
+import edu.nus.hipci.core.GenTest
 
 
 /**

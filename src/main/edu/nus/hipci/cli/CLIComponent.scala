@@ -1,6 +1,6 @@
 package edu.nus.hipci.cli
 
-import edu.nus.hipci.common.{Logging, Component}
+import edu.nus.hipci.core.{Logging, Component}
 
 /**
  * Base class for all the CLI components

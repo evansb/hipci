@@ -8,8 +8,9 @@ import akka.actor.Props
 import akka.pattern.ask
 import com.typesafe.config.ConfigFactory
 
-import edu.nus.hipci.common.TestConfiguration
+import edu.nus.hipci.core.TestConfiguration
 import edu.nus.hipci.daemon.Daemon
+import edu.nus.hipci.daemon.{Main => DaemonMain}
 import edu.nus.hipci.daemon.request._
 import edu.nus.hipci.daemon.response._
 
@@ -21,7 +22,7 @@ import edu.nus.hipci.daemon.response._
  */
 object CommandDispatcher extends CLIComponentDescriptor {
   val name = "CommandDispatcher"
-  val subComponents = List(TestConfigurationFactory, CommandParser, Daemon, TestReporter)
+  val subComponents = List(TestConfigurationFactory, CommandParser, TestReporter)
   val props = Props[CommandDispatcher]
 }
 
@@ -59,7 +60,7 @@ class CommandDispatcher extends CLIComponent {
         lazy val numberOfTest = testConfiguration.tests.size
         lazy val totalNumberOfFiles = testConfiguration.tests.foldLeft(0)({ (acc, pair) => acc + pair._2.size })
         logger.good(s"Found $numberOfTest suites ($totalNumberOfFiles files)")
-        val daemon = Daemon.getDaemon(context)
+        val daemon = Daemon.get(context)
         val result = Await.result(daemon ? SubmitTest(testConfiguration), timeout.duration).asInstanceOf[TestResult]
         result match {
           case TestComplete(config) =>
@@ -68,7 +69,7 @@ class CommandDispatcher extends CLIComponent {
             val report = Await.result(reporter ? ReportSingleString(config), timeout.duration).asInstanceOf[String]
             Console.out.println(report)
           case TestInQueue(ticket, since) =>
-            val delta = Duration.fromNanos(System.currentTimeMillis - since)
+            val delta = Duration.fromNanos(System.currentTimeMillis - since).toSeconds
             logger.good(s"Ticket ${ticket} in queue since ${delta} ago")
           case TicketAssigned(ticket) =>
             logger.good(s"Ticket ${ticket} assigned. Run hipci status to check")
@@ -88,13 +89,16 @@ class CommandDispatcher extends CLIComponent {
 
   implicit object StartCommandDispatcher extends Dispatcher[StartCommand] {
     override def dispatch(command: StartCommand): Request = {
-      KeepAlive(Daemon.start())
+      logger good "Starting Daemon"
+      new Thread(new DaemonMain())
+      KeepAlive
     }
   }
 
   implicit object StopCommandDispatcher extends Dispatcher[StopCommand] {
     override def dispatch(command: StopCommand): Request = {
-      Daemon.stop(context)
+      logger good "Terminating daemon"
+      Daemon.get(context) ! StopDaemon
       Terminate(0)
     }
   }

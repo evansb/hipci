@@ -6,9 +6,9 @@ import akka.util.Timeout
 import org.scalatest.concurrent.ScalaFutures._
 import scala.concurrent.duration._
 import org.scalatest._
-import Matchers._
+import org.scalatest.Matchers._
 
-import edu.nus.hipci.common.Diff3
+import edu.nus.hipci.core.Diff3
 
 /**
  * Tests the functionality of the test reporter.

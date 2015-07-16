@@ -1,10 +1,9 @@
 package edu.nus.hipci.cli
 
-import edu.nus.hipci
-import edu.nus.hipci.common.{TestConfiguration, Diff3}
-
 import scala.language.existentials
 import akka.actor.Props
+
+import edu.nus.hipci.core._
 
 /**
  * Render a report from test results
@@ -62,9 +61,9 @@ private class TestReporter extends CLIComponent {
     val f = (z: Option[Any]) =>
       z.map((z) =>
         if (x.isInstanceOf[Int]) {
-          if (z.asInstanceOf[Boolean]) { hipci.SleekValid } else { hipci.SleekInvalid }
+          if (z.asInstanceOf[Boolean]) { SleekValid } else { SleekInvalid }
         } else {
-          if (z.asInstanceOf[Boolean]) { hipci.HipSuccess } else { hipci.HipFail }
+          if (z.asInstanceOf[Boolean]) { HipSuccess } else { HipFail }
         })
     x.copy(_2 = f(x._2), _3 = f(x._3), _4 = f(x._4))
   }
