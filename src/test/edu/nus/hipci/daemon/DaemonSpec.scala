@@ -40,7 +40,7 @@ class DaemonSpec extends FlatSpec {
           GenTest(
             path = "test_hip.ss",
             kind = "hip",
-            arguments = Set.empty,
+            arguments = List.empty,
             specs = Map("append" -> true)
           ))))
     var result : TestResult = null

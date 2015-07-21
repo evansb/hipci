@@ -72,13 +72,13 @@ class TestConfigurationFactorySpec extends FlatSpec {
       GenTest(
         path = "test.ss",
         kind = "hip",
-        arguments = Set("-arg", "--arg2"),
+        arguments = List("-arg", "--arg2"),
         specs = Map("foo" -> true, "bar" -> false)
       ),
       GenTest(
         path = "test.slk",
         kind = "sleek",
-        arguments = Set(),
+        arguments = List(),
         specs = Map("1" -> true, "2" -> false)
       )
     )
@@ -113,7 +113,7 @@ class TestConfigurationFactorySpec extends FlatSpec {
       GenTest(
         path = "test.ss",
         kind = "hip",
-        arguments = Set("-arg", "--arg2"),
+        arguments = List("-arg", "--arg2"),
         specs = Map("foo" -> true, "bar" -> false)
       ))
     whenReady(subject ? Config(config), timeout(patience)) {

@@ -11,7 +11,7 @@ case class GenTest
 
   kind: String,
 
-  arguments: Set[String] = Set.empty,
+  arguments: Seq[String] = List.empty[String],
 
-  specs: Map[String, Boolean] = Map.empty
+  specs: Map[String, Boolean] = Map.empty[String, Boolean]
   )

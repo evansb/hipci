@@ -87,13 +87,13 @@ class TestConfigurationFactory extends CLIComponent {
           val hipSpec = specs.foldRight[Map[String, Boolean]](HashMap.empty)({
             (en, acc) => acc + parseSingleHipSpec(en)
           })
-          Some(GenTest(filename, HipTest, arguments.toSet, hipSpec))
+          Some(GenTest(filename, HipTest, arguments, hipSpec))
         } else {
           val indexedSpecs = specs.zipWithIndex.map((p) => p.copy(_2 = p._2 + 1))
           val sleekSpec = indexedSpecs.foldRight[Map[String, Boolean]](Map.empty)({
             (p, acc) => acc + ((p._2.toString, parseSingleSleekSpec(p._1)))
           })
-          Some(GenTest(filename, SleekTest, arguments.toSet, sleekSpec))
+          Some(GenTest(filename, SleekTest, arguments, sleekSpec))
         }
     }
   }

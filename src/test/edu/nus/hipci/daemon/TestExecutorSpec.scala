@@ -41,13 +41,13 @@ class TestExecutorSpec extends FlatSpec {
           GenTest(
             path = "test_hip.ss",
             kind = "hip",
-            arguments = Set.empty,
+            arguments = List.empty,
             specs = Map("append" -> true)
           ),
           GenTest(
             path = "test_sleek.slk",
             kind = "sleek",
-            arguments = Set.empty,
+            arguments = List.empty,
             specs = Map("1" -> false, "2" -> true)))))
     whenReady(subject ? SubmitTest(config), timeout(patience)) {
       _ match {

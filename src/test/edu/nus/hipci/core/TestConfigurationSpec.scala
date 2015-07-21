@@ -19,13 +19,13 @@ class TestConfigurationSpec extends FlatSpec {
           GenTest(
             path = "test_hip.ss",
             kind = "hip",
-            arguments = Set.empty,
+            arguments = List.empty,
             specs = Map("append" -> true)
           ),
           GenTest(
             path = "test_sleek.slk",
             kind = "sleek",
-            arguments = Set.empty,
+            arguments = List.empty,
             specs = Map("1" -> false, "2" -> true)))))
     TestConfiguration.fromJSON(TestConfiguration.toJSON(config)) shouldEqual config
   }

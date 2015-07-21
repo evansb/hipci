@@ -27,21 +27,21 @@ class OutputAnalyzerSpec extends FlatSpec {
       GenTest(
         path = "test.ss@a",
         kind = "hip",
-        arguments = Set("-arg", "--arg2"),
+        arguments = List("-arg", "--arg2"),
         specs = Map( "foo" -> true, "bar" -> false)
       )
     val two =
       GenTest(
         path = "test.ss@b",
         kind = "hip",
-        arguments = Set("-arg"),
+        arguments = List("-arg"),
         specs = Map( "foo" -> true)
       )
     val three =
       GenTest(
         path = "test.ss@c",
         kind = "hip",
-        arguments = Set("-arg"),
+        arguments = List("-arg"),
         specs = Map( "foo" -> false, "bar" -> false)
       )
     whenReady(subject ? AnalyzeOutput(one, two, three)) {
