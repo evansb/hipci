@@ -9,15 +9,22 @@ import edu.nus.hipci.core._
  * Entry point to Daemon process.
  */
 class Main() extends Runnable {
+
   override def run(): Unit = {
-    object defaultDatabase extends Instance(
-      entities = Set(Entity[GenTest](), Entity[TestConfiguration]()),
-      url = "jdbc:h2:./hipci",
-      initMode = InitMode.Create,
-      poolSize = 20)
-    val (daemon, _) = Daemon.withDbAccess(defaultDatabase)
     val system = ActorSystem(AppName, DefaultServerConfig)
-    daemon.register(system)
-    system.actorOf(daemon.props, "Daemon")
+    if (Daemon.get(system).isEmpty) {
+      object defaultDatabase extends Instance(
+        entities = Set(Entity[DbEntity]()),
+        url = "jdbc:h2:./hipci",
+        initMode = InitMode.Create,
+        poolSize = 20)
+      val (daemon, _) = Daemon.withDbAccess(defaultDatabase)
+      daemon.register(system)
+      system.actorOf(daemon.props, "Daemon")
+      Console.out.println("Daemon started")
+      while (!Thread.interrupted()) {
+      }
+      system.shutdown()
+    }
   }
 }

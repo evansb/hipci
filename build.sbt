@@ -9,10 +9,11 @@ lazy val commonSettings = Seq(
 
 lazy val scopt = "com.github.scopt" %% "scopt" % "3.3.0"
 
-lazy val scalaTest = ("org.scalatest" %% "scalatest" % "2.2.4" % "test").excludeAll(
-  ExclusionRule(name = "scala-xml"),
-  ExclusionRule(name = "scala-parser-combinators")
-)
+lazy val scalaTest = ("org.scalatest" %% "scalatest" % "2.2.4" % "test")
+  .excludeAll(
+    ExclusionRule(name = "scala-xml"),
+    ExclusionRule(name = "scala-parser-combinators")
+  )
 
 lazy val akkaActor = "com.typesafe.akka" %% "akka-actor" % "2.3.12"
 
@@ -21,8 +22,6 @@ lazy val akkaRemote = "com.typesafe.akka" %% "akka-remote" % "2.3.12"
 lazy val typesafeConfig = "com.typesafe" % "config" % "1.2.1"
 
 lazy val config = "com.github.kxbmap" %% "configs" % "0.2.4"
-
-lazy val log4s = "org.log4s" %% "log4s" % "1.1.5"
 
 lazy val scalaRainbow = "pl.project13.scala" %% "rainbow" % "0.2"
 
@@ -34,8 +33,13 @@ lazy val embrace = "com.github.nikita-volkov" % "embrace" % "0.1.3" intransitive
 
 lazy val sorm = "org.sorm-framework" % "sorm" % "0.3.18" excludeAll (ExclusionRule(name = "embrace"))
 
-lazy val hsqldb = "org.hsqldb" % "hsqldb" % "2.3.3" from
-  "https://repo1.maven.org/maven2/org/hsqldb/hsqldb/2.3.3/hsqldb-2.3.3.jar"
+lazy val h2 = "com.h2database" % "h2" % "1.4.187" from
+  "http://central.maven.org/maven2/com/h2database/h2/1.4.187/h2-1.4.187.jar"
+
+lazy val slf4j = "org.slf4j" % "slf4j-simple" % "1.7.12" from
+  "http://central.maven.org/maven2/org/slf4j/slf4j-simple/1.7.12/slf4j-simple-1.7.12.jar"
+
+lazy val pickling = "org.scala-lang.modules" %% "scala-pickling" % "0.10.1"
 
 lazy val hipci = (project in file(".")).
   settings(commonSettings: _*).
@@ -46,18 +50,19 @@ lazy val hipci = (project in file(".")).
     version := "1.0",
     resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
     logLevel := Level.Error,
-    libraryDependencies ++= Seq(hsqldb,
-      scalaTest, akkaActor, akkaRemote, typesafeConfig, log4s, scopt,
-      config, scalaRainbow, scalaLibrary, scalaCompiler, embrace, sorm),
+    libraryDependencies ++= Seq(h2, scalaTest, akkaActor, akkaRemote,
+      typesafeConfig, scopt, config, scalaRainbow, scalaLibrary,
+      scalaCompiler, embrace, sorm, slf4j, pickling),
     scalaSource in Compile := baseDirectory.value / "src/main",
     scalaSource in Test := baseDirectory.value / "src/test",
     scalacOptions ++= Seq("-deprecation", "-feature"),
-    mainClass in (Compile, run) := Some("edu.nus.hipci.cli.CLIApp"),
-    assemblyOption in assembly := (assemblyOption in assembly).value.copy(prependShellScript = Some(defaultShellScript)),
+    mainClass in (Compile, run) := Some("edu.nus.hipci.cli.Main"),
+    assemblyOption in assembly := (assemblyOption in assembly).value
+      .copy(prependShellScript = Some(defaultShellScript)),
     assemblyJarName in assembly := "hipci",
     test in assembly := {},
     parallelExecution in Test := false,
-    mainClass in assembly := Some("edu.nus.hipci.cli.CLIApp"),
+    mainClass in assembly := Some("edu.nus.hipci.cli.Main"),
     assemblyOutputPath in assembly := baseDirectory.value / "bin" / "hipci"
   )
 

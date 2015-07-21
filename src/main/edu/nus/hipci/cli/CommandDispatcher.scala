@@ -60,21 +60,23 @@ class CommandDispatcher extends CLIComponent {
         lazy val numberOfTest = testConfiguration.tests.size
         lazy val totalNumberOfFiles = testConfiguration.tests.foldLeft(0)({ (acc, pair) => acc + pair._2.size })
         logger.good(s"Found $numberOfTest suites ($totalNumberOfFiles files)")
-        val daemon = Daemon.get(context)
-        val result = Await.result(daemon ? SubmitTest(testConfiguration), timeout.duration).asInstanceOf[TestResult]
-        result match {
-          case TestComplete(config) =>
-            logger.good(s"Test ${config.testID} has been completed.")
-            val reporter = loadComponent(TestReporter)
-            val report = Await.result(reporter ? ReportSingleString(config), timeout.duration).asInstanceOf[String]
-            Console.out.println(report)
-          case TestInQueue(ticket, since) =>
-            val delta = Duration.fromNanos(System.currentTimeMillis - since).toSeconds
-            logger.good(s"Ticket ${ticket} in queue since ${delta} ago")
-          case TicketAssigned(ticket) =>
-            logger.good(s"Ticket ${ticket} assigned. Run hipci status to check")
-          case other =>
-            logger.bad(s"Exception occurred ${other.toString}")
+        Daemon.get(context) map { (daemon) =>
+          val result = Await.result(daemon ? SubmitTest(testConfiguration),
+            timeout.duration).asInstanceOf[TestResult]
+          result match {
+            case TestComplete(config) =>
+              logger.good(s"Test ${config.testID} has been completed.")
+              val reporter = loadComponent(TestReporter)
+              val report = Await.result(reporter ? ReportSingleString(config),
+                timeout.duration).asInstanceOf[String]
+              Console.out.println(report)
+            case TestInQueue(ticket, since) =>
+              logger.good(s"Ticket ${ticket} in queue.")
+            case TicketAssigned(ticket) =>
+              logger.good(s"Ticket ${ticket} assigned. Run hipci status to check")
+            case other =>
+              logger.bad(s"Exception occurred ${other.toString}")
+          }
         }
       }
       Terminate(0)
@@ -89,16 +91,18 @@ class CommandDispatcher extends CLIComponent {
 
   implicit object StartCommandDispatcher extends Dispatcher[StartCommand] {
     override def dispatch(command: StartCommand): Request = {
-      logger good "Starting Daemon"
-      new Thread(new DaemonMain())
+      val daemonThread = new Thread(new DaemonMain())
+      daemonThread.start()
       KeepAlive
     }
   }
 
   implicit object StopCommandDispatcher extends Dispatcher[StopCommand] {
     override def dispatch(command: StopCommand): Request = {
-      logger good "Terminating daemon"
-      Daemon.get(context) ! StopDaemon
+      Daemon.get(context) map { (d) =>
+        logger good "Terminating daemon"
+        d ! StopDaemon
+      }
       Terminate(0)
     }
   }

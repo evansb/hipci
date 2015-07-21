@@ -2,6 +2,7 @@ package edu.nus.hipci.daemon
 
 import akka.actor.ActorRef
 import edu.nus.hipci.core.TestConfiguration
+import sorm.Persisted
 
 /**
  * Requests and Responses defined at this package

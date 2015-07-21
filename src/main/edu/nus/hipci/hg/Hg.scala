@@ -21,7 +21,6 @@ class Hg extends Component {
   import response._
 
   protected val descriptor = Hg
-  private val logger = Logging.toStdout()
 
   private def runCommand(cmd: Seq[String], workingDir: File) = {
     val out = new ByteArrayOutputStream

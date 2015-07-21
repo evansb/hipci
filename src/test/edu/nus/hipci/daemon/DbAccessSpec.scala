@@ -21,13 +21,13 @@ class DbAccessSpec extends FlatSpec {
   import edu.nus.hipci.daemon.response._
 
   private object TestDb extends Instance(
-    entities = Set(Entity[GenTest](), Entity[TestConfiguration]()),
+    entities = Set(Entity[DbEntity]()),
     url = "jdbc:h2:mem:hipci-test",
     poolSize = 2)
 
   val system = ActorSystem("hipci-test")
   val subject = system.actorOf(DbAccess(TestDb).props, "DbAccess")
-  implicit val akkaTimeout = Timeout(1.seconds)
+  implicit val akkaTimeout = Timeout(5.seconds)
   val patience = Span(10, Seconds)
 
   "DbAccess" should "post and get entity" in {

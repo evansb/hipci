@@ -2,6 +2,9 @@ package edu.nus.hipci.core
 
 import java.nio.file.Paths
 import scala.collection.immutable.HashMap
+import scala.pickling._
+import json._
+import scala.pickling.Defaults._
 
 /**
  * A schema of a configuration file used when running the CI.
@@ -20,6 +23,18 @@ object TestConfiguration {
   def ReservedKeywords = {
     import Fields._
     Seq(ProjectDirectory, HipDirectory, SleekDirectory, Timeout).toSet
+  }
+
+  def toJSON(test: TestConfiguration) : String = {
+    implicit val genTest = Pickler.generate[GenTest]
+    implicit val testConf = Pickler.generate[TestConfiguration]
+    test.pickle.value
+  }
+
+  def fromJSON(json: String) : TestConfiguration = {
+    implicit val genTest = Pickler.generate[GenTest]
+    implicit val testConf = Pickler.generate[TestConfiguration]
+    json.unpickle[TestConfiguration]
   }
 }
 

@@ -1,6 +1,6 @@
 package edu.nus.hipci.cli
 
-import edu.nus.hipci.core.{Logging, Component}
+import edu.nus.hipci.core._
 
 /**
  * Base class for all the CLI components
@@ -8,11 +8,6 @@ import edu.nus.hipci.core.{Logging, Component}
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 abstract class CLIComponent extends Component {
-  /**
-   * Logger for the component.
-   */
-  protected val logger = Logging.toStdout()
-
   import request._
   override def receive = {
     case Terminate(exitCode) =>

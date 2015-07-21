@@ -7,7 +7,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise, ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.sys.process.Process
-import akka.actor.Props
+import akka.actor.{ActorRef, Props}
 import akka.pattern._
 
 import edu.nus.hipci.core._
@@ -34,7 +34,6 @@ class TestExecutor extends Component {
   type T = GenTest
 
   protected val descriptor = TestExecutor
-  protected val logger = Logger("")
 
   /**
    * Command name to execute.
@@ -73,12 +72,14 @@ class TestExecutor extends Component {
       val path = (if (t.kind.equals("hip")) { hipDir } else { sleekDir }).resolve(Paths.get(name, t.path))
       val command = baseDir.resolve(getCommand(t)).toAbsolutePath.toString
       val cmd = Seq(command) ++ t.arguments.map(_.toString) ++ Seq(path.toString)
+      logger.good(cmd mkString " ")
       future = future map {
         case oldSet =>
           val output = Await.result(Future {
             logger.good(s"Running ${ cmd.tail.mkString(" ") }")
             Process(cmd, Some(baseDir.toFile), "PATH" -> sysPath).!!
           }, timeout)
+          logger result output
           val r = parseOutput(output, t)
           oldSet + r
       }
@@ -91,7 +92,8 @@ class TestExecutor extends Component {
    * @param config The config schema
    * @return Output of the execution
    */
-  private def executeConfig(config: TestConfiguration) : Promise[TestResult] = {
+  private def executeConfig(sender: ActorRef, config: TestConfiguration)
+  : Promise[TestResult] = {
     val promise = Promise[TestResult]
     val init = Future { Map.empty[String, Set[GenTest]] }
     config.tests.foldLeft(init)({ (acc, entry) =>
@@ -108,7 +110,7 @@ class TestExecutor extends Component {
       }
     }).andThen({
       case Success(pool) =>
-        logger.info(s"Test ${config.testID} finished")
+        logger.good(s"Test ${config.testID} finished")
         promise.success(TestComplete(config.copy(tests = pool)))
       case Failure(exc) =>
         logger.bad(s"Test ${config.testID} failed")
@@ -118,7 +120,7 @@ class TestExecutor extends Component {
   }
 
   override def receive = {
-    case SubmitTest(config) => sender ! executeConfig(config)
+    case SubmitTest(config) => sender ! executeConfig(sender(), config)
     case other => super.receive(other)
   }
 }

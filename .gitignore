@@ -18,3 +18,7 @@ bin/hipci
 bin/example.conf
 vendor/
 logs/
+
+*.db
+._*
+oc.out

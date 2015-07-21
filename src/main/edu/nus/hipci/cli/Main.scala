@@ -5,7 +5,6 @@ import akka.actor.{ActorSystem, Props}
 import akka.pattern._
 
 import edu.nus.hipci.core._
-import edu.nus.hipci.daemon.request.Introduce
 import edu.nus.hipci.cli.request.InitCLI
 
 /**
@@ -17,9 +16,6 @@ object Main extends CLIComponentDescriptor with App {
   val props = Props[Main]
   val subComponents = List(CommandParser, CommandDispatcher)
   val system = ActorSystem(AppName, DefaultClientConfig)
-
-  System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "false")
-  System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "INFO")
 
   this.register(system)
   system.actorOf(Props[Main], "Main") ! InitCLI(args)

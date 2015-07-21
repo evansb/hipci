@@ -3,17 +3,48 @@ package edu.nus.hipci.core
 import scala.concurrent.duration._
 import akka.actor._
 import akka.util.Timeout
+import pl.project13.scala.rainbow._
 
 /**
  * Base class for all the CLI components
  *
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
-abstract class Component extends Actor {
+abstract class Component extends Actor with ActorLogging {
   /**
-   * The descriptor of the component
+   * The descriptor of the component.
    */
   protected val descriptor : ComponentDescriptor
+
+  /**
+   * Wraps Akka logger with colors.
+   */
+  protected object logger {
+    def info(str : String) = {
+      Console.out.println(str.underlined)
+      log.info(str.underlined)
+    }
+
+    def error(str: String) = {
+      Console.out.println(str.red)
+      log.error(str.red)
+    }
+
+    def good(str : String) = {
+      Console.out.println(str.green)
+      log.info(str.green)
+    }
+
+    def bad(str: String) = {
+      Console.out.println(str.red)
+      log.info(str.red)
+    }
+
+    def result(str: String) = {
+      Console.out.println(str.cyan)
+      log.info(str.cyan)
+    }
+  }
 
   /**
    * Register a component to an ActorSystem using its descriptor.
