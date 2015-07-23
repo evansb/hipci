@@ -22,7 +22,7 @@ import edu.nus.hipci.util._
 object TestExecutor extends ComponentDescriptor {
   val name = "TestExecutor"
   val props = Props[TestExecutor]
-  val subComponents = List(OutputAnalyzer, OutputParser)
+  val subComponents = List(OutputParser)
 }
 
 class TestExecutor extends Component {

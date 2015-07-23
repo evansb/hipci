@@ -35,13 +35,13 @@ object TestConfiguration {
   private def toP(test: TestConfiguration): PTestConfiguration = {
     PTestConfiguration(test.testID, test.projectDirectory, test.hipDirectory,
       test.sleekDirectory, test.timeout, test.tests.mapValues(
-        _.toSeq .map(_.pickle.value)))
+        _.toSeq .map(_.pickle.value).map(identity)))
   }
 
   private def fromP(test: PTestConfiguration): TestConfiguration = {
     TestConfiguration(test.testID, test.projectDirectory, test.hipDirectory,
       test.sleekDirectory, test.timeout,
-      test.tests.mapValues(_.map(_.unpickle[GenTest]).toSet))
+      test.tests.mapValues(_.map(_.unpickle[GenTest]).toSet).map(identity))
   }
 
   def toJSON(test: TestConfiguration) = toP(test).pickle.value

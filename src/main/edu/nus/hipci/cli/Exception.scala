@@ -55,3 +55,12 @@ case class UnrecognizedCommand(sender: String, receiver: String, message: String
        |  Message:
        |    $message
     """.stripMargin)
+
+case class RevisionNotFound(revision: String)
+  extends Exception(
+    s"""
+       | Revision not found: ${revision}
+       |
+       | Please make sure you use correct Mercurial revision format such as
+       | a8b2s or ann2_auto:tip
+    """.stripMargin)

@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.sys.process._
 import akka.actor._
+import edu.nus.hipci.cli._
 import edu.nus.hipci.core._
 
 object Hg extends ComponentDescriptor {
@@ -60,8 +61,21 @@ class Hg extends Component {
     }
   }
 
+  private def getRevisionHash(repo: Path, revisions: List[String]) = {
+    whenRepoExists(repo) { (repo) =>
+      RevisionHash(revisions.map { (revision) =>
+        runCommand(Seq("hg", "id", "-i", "-r", revision), repo.toFile) match {
+          case (0, out, _) => out.trim()
+          case (_, _, err) => throw new RevisionNotFound(revision)
+        }
+      })
+    }
+  }
+
   override def receive = {
     case GetCurrentRevision(repoDir) => sender() ! getCurrentRevision(repoDir)
+    case GetRevisionHash(repoDir, revisions) =>
+      sender() ! getRevisionHash(repoDir, revisions)
     case other => super.receive(other)
   }
 }

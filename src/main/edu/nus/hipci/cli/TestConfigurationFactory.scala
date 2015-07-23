@@ -25,6 +25,14 @@ object TestConfigurationFactory extends CLIComponentDescriptor {
   val name = "TestConfigurationFactory"
   val subComponents = List(Hg)
   val props = Props[TestConfigurationFactory]
+
+  def computeConfigSHA(config: Config) : String = {
+    val hash = config.hashCode().toString()
+    MessageDigest.getInstance("SHA-1")
+      .digest(hash.getBytes("UTF-8"))
+      .map("%02x".format(_))
+      .mkString
+  }
 }
 
 class TestConfigurationFactory extends CLIComponent {
@@ -49,19 +57,17 @@ class TestConfigurationFactory extends CLIComponent {
     }
   }
 
-  private def computeConfigSHA(config: Config) : String = {
-    val hash = config.hashCode().toString()
-    MessageDigest.getInstance("SHA-1").digest(hash.getBytes("UTF-8")).map("%02x".format(_)).mkString
-  }
-
   private def computeTestID(projectDirectory: String, config: Config) : String = {
     val hg = loadComponent(Hg)
-    val revision = Await.result(hg ? GetCurrentRevision(Paths.get(projectDirectory)), timeout.duration)
+    val revision = Await.result(
+      hg ? GetCurrentRevision(Paths.get(projectDirectory)),
+      timeout.duration)
     revision match {
       case RevisionDirty(rev) =>
         logger.error(DirtyRepository(projectDirectory).getMessage)
-        rev + "@" + computeConfigSHA(config)
-      case RevisionClean(rev) => rev + "@" + computeConfigSHA(config)
+        rev + "@" + TestConfigurationFactory.computeConfigSHA(config)
+      case RevisionClean(rev) =>
+        rev + "@" + TestConfigurationFactory.computeConfigSHA(config)
       case MercurialError(_) => ""
     }
   }

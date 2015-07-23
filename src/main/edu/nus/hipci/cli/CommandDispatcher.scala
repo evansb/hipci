@@ -1,6 +1,9 @@
 package edu.nus.hipci.cli
 
 import java.nio.file.Paths
+import edu.nus.hipci.hg.Hg
+import edu.nus.hipci.hg.request.GetRevisionHash
+
 import scala.concurrent.duration.Duration
 import scala.util._
 import scala.concurrent.Await
@@ -22,7 +25,8 @@ import edu.nus.hipci.daemon.response._
  */
 object CommandDispatcher extends CLIComponentDescriptor {
   val name = "CommandDispatcher"
-  val subComponents = List(TestConfigurationFactory, CommandParser, TestReporter)
+  val subComponents = List(TestConfigurationFactory, CommandParser,
+    TestReporter, Hg)
   val props = Props[CommandDispatcher]
 }
 
@@ -67,7 +71,9 @@ class CommandDispatcher extends CLIComponent {
             case TestComplete(config) =>
               logger.good(s"Test ${config.testID} has been completed.")
               val reporter = loadComponent(TestReporter)
-              val report = Await.result(reporter ? ReportSingleString(config),
+              val reference = testConfiguration.copy(testID = "expected")
+              val report = Await.result(
+                reporter ? ReportTestResult(List(reference, config), false),
                 timeout.duration).asInstanceOf[String]
               Console.out.println(report)
             case TestInQueue(ticket, since) =>
@@ -85,6 +91,39 @@ class CommandDispatcher extends CLIComponent {
 
   implicit object DiffCommandDispatcher extends Dispatcher[DiffCommand] {
     override def dispatch(command: DiffCommand): Request = {
+      val configFile = command.configFile
+      val revisions = command.revisions
+      val f = Paths.get(configFile).toFile
+      if (f == null) {
+        throw FileNotFound(configFile)
+      } else {
+        val config = ConfigFactory.parseFile(f)
+        val configHash = TestConfigurationFactory.computeConfigSHA(config)
+        val key = TestConfiguration.Fields.ProjectDirectory
+        val repoDir = Paths.get(config.getString(key))
+        val hg = loadComponent(Hg)
+        val revisionHashes = Await.result(
+          hg ? GetRevisionHash(repoDir, revisions), timeout.duration)
+          .asInstanceOf[List[String]]
+        Daemon.get(context) map { (daemon) =>
+          val testResults =
+            revisionHashes.map({ (hash) =>
+              val testID = s"$hash@$configHash"
+              Await.result(daemon ? CheckTicket(testID), timeout.duration)
+                   .asInstanceOf[TestResult]
+            }).foldRight(List.empty[TestConfiguration])({ (r, acc) =>
+            r match {
+              case TestComplete(result) => result :: acc
+              case _ => acc
+            }
+          })
+          val reporter = loadComponent(TestReporter)
+          val report = Await.result(
+            reporter ? ReportTestResult(testResults, diffOnly = true),
+            timeout.duration).asInstanceOf[String]
+          Console.out.println(report)
+        }
+      }
       Terminate(0)
     }
   }

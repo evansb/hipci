@@ -1,9 +1,6 @@
 package edu.nus.hipci.cli
 
-import scala.language.existentials
-import akka.actor._
-
-import edu.nus.hipci.core.{TestConfiguration, Diff3}
+import edu.nus.hipci.core._
 
 /**
  * Requests and Responses defined at this package
@@ -17,9 +14,8 @@ object request {
   case object ShowUsage extends Request
   case class Terminate(exitCode: Int) extends Request
   case object KeepAlive extends Request
-  case class ReportSingleString(config: TestConfiguration) extends Request
-  case class ReportDiff2String(diff3: Diff3[_,_]) extends Request
-  case class ReportDiff3String(diff3: Diff3[_,_]) extends Request
+  case class ReportTestResult(diff: List[TestConfiguration], diffOnly: Boolean)
+    extends Request
 }
 
 object response {
