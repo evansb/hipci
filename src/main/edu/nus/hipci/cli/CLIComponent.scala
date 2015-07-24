@@ -15,6 +15,7 @@ sealed trait CLIComponentResponse
  * @param exitCode Optional exit code, default to successful termination (0).
  */
 case class Terminate(exitCode: Int = 0) extends CLIComponentRequest
+case object KeepAlive extends CLIComponentRequest
 
 /**
  * CLIException constructors defined for this package.

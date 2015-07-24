@@ -150,9 +150,8 @@ class CommandDispatcher extends CLIComponent {
       } getOrElse {
         val daemonThread = new Thread(new DaemonMain())
         daemonThread.start()
-        daemonThread.setDaemon(true)
       }
-      Terminate(0)
+      KeepAlive
     }
   }
 

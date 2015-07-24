@@ -7,7 +7,6 @@ import edu.nus.hipci.core._
 
 sealed trait MainRequest
 case class InitCLI(args: Seq[String]) extends MainRequest
-case object KeepAlive extends MainRequest
 
 /** Singleton descriptor of the [[Main]] class. */
 object Main extends ComponentDescriptor with App {
