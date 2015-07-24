@@ -6,28 +6,36 @@ import scala.concurrent.Await
 import scala.util.{Try, Success, Failure}
 import scala.collection.JavaConversions
 import scala.collection.immutable.{HashSet, HashMap}
-import scala.concurrent.duration._
-import akka.actor.Props
 import akka.pattern._
 import com.typesafe.config.Config
 import com.github.kxbmap.configs._
-
-import edu.nus.hipci._
 import edu.nus.hipci.core._
-import edu.nus.hipci.hg.Hg
+import edu.nus.hipci.hg._
+
+sealed trait TestConfigurationFactoryRequest
 
 /**
- * Creates a TestConfiguration from a Config object.
+ * Request to create a test configuration from a Config object
  *
- * @author Evan Sebastian <evanlhoini@gmail.com>
+ * @constructor Create a request from a config object
+ * @param config The config object
  */
-object TestConfigurationFactory extends CLIComponentDescriptor {
-  val name = "TestConfigurationFactory"
-  val subComponents = List(Hg)
-  val props = Props[TestConfigurationFactory]
+case class CreateTestConfiguration(config: Config)
+  extends TestConfigurationFactoryRequest
 
+/** Singleton descriptor for [[TestConfigurationFactory]] */
+object TestConfigurationFactory
+  extends ComponentDescriptor[TestConfigurationFactory] {
+  override val subComponents = List(Hg)
+
+  /**
+   * Compute the SHA of a config object.
+   *
+   * @param config the config object.
+   * @return SHA digest of the config object.
+   */
   def computeConfigSHA(config: Config) : String = {
-    val hash = config.hashCode().toString()
+    val hash = config.hashCode().toString
     MessageDigest.getInstance("SHA-1")
       .digest(hash.getBytes("UTF-8"))
       .map("%02x".format(_))
@@ -35,10 +43,8 @@ object TestConfigurationFactory extends CLIComponentDescriptor {
   }
 }
 
+/** Creates a TestConfiguration from a Config object. */
 class TestConfigurationFactory extends CLIComponent {
-  import hg.request._
-  import hg.response._
-
   val descriptor = TestConfigurationFactory
 
   protected def fromConfig(config: Config): Try[TestConfiguration] = {
@@ -122,7 +128,7 @@ class TestConfigurationFactory extends CLIComponent {
   }
 
   override def receive = {
-    case request.Config(config) => sender ! fromConfig(config)
+    case CreateTestConfiguration(config) => sender ! fromConfig(config)
     case other => super.receive(other)
   }
 }

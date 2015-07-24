@@ -2,11 +2,10 @@ package edu.nus.hipci.daemon
 
 import akka.actor.ActorSystem
 import sorm._
-
 import edu.nus.hipci.core._
 
 /**
- * Entry point to Daemon process.
+ * A `Runnable` that starts a Daemon actor.
  */
 class Main() extends Runnable {
 

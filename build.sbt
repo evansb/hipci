@@ -29,9 +29,10 @@ lazy val scalaLibrary = "org.scala-lang" % "scala-library" % "2.11.6"
 
 lazy val scalaCompiler = "org.scala-lang" % "scala-compiler" % "2.11.6"
 
-lazy val embrace = "com.github.nikita-volkov" % "embrace" % "0.1.3" intransitive
+lazy val embrace = ("com.github.nikita-volkov" % "embrace" % "0.1.3").intransitive
 
-lazy val sorm = "org.sorm-framework" % "sorm" % "0.3.18" excludeAll (ExclusionRule(name = "embrace"))
+lazy val sorm = "org.sorm-framework" % "sorm" % "0.3.18" excludeAll
+  ExclusionRule(name = "embrace")
 
 lazy val h2 = "com.h2database" % "h2" % "1.4.187" from
   "http://central.maven.org/maven2/com/h2database/h2/1.4.187/h2-1.4.187.jar"

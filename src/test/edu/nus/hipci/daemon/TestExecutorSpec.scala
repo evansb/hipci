@@ -1,7 +1,5 @@
 package edu.nus.hipci.daemon
 
-import org.scalatest.time.{Seconds, Span}
-
 import scala.collection.immutable.Map
 import scala.concurrent._
 import scala.concurrent.duration._
@@ -11,7 +9,7 @@ import akka.util.Timeout
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
-
+import org.scalatest.time.{Seconds, Span}
 import edu.nus.hipci.core._
 
 /**
@@ -20,9 +18,6 @@ import edu.nus.hipci.core._
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 class TestExecutorSpec extends FlatSpec {
-  import request._
-  import response._
-
   val system = ActorSystem("hipci-test")
   TestExecutor.register(system)
   val subject = system.actorOf(TestExecutor.props, "TestExecutor")
@@ -50,13 +45,11 @@ class TestExecutorSpec extends FlatSpec {
             arguments = List.empty,
             specs = Map("1" -> false, "2" -> true)))))
     whenReady(subject ? SubmitTest(config), timeout(patience)) {
-      _ match {
-        case promise: Promise[_] =>
-          Await
-            .result(promise.future, akkaTimeout.duration)
-            .asInstanceOf[TestComplete].result shouldEqual config
-        case _ => assert(false)
-      }
+      case promise: Promise[_] =>
+        Await
+          .result(promise.future, akkaTimeout.duration)
+          .asInstanceOf[TestComplete].result shouldEqual config
+      case _ => assert(false)
     }
   }
 }

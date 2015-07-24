@@ -21,8 +21,6 @@ import edu.nus.hipci.core._
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 class TestConfigurationFactorySpec extends FlatSpec {
-  import request._
-
   val system = ActorSystem("hipci-test")
   val subject = TestConfigurationFactory.register(system)
 
@@ -36,7 +34,7 @@ class TestConfigurationFactorySpec extends FlatSpec {
       """
         |
       """.stripMargin)
-    whenReady(subject ? Config(config), timeout(patience)) {
+    whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
       _ shouldEqual Success(defaultConfig)
     }
   }
@@ -49,7 +47,7 @@ class TestConfigurationFactorySpec extends FlatSpec {
         | sleek_directory = custom/sleek
         | timeout = 2000
       """.stripMargin)
-    whenReady(subject ? Config(config), timeout(patience)) {
+    whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
       _ shouldEqual Success(defaultConfig.copy(
         projectDirectory = "some_directory",
         hipDirectory = "custom/hip",
@@ -83,7 +81,7 @@ class TestConfigurationFactorySpec extends FlatSpec {
       )
     )
 
-    whenReady(subject ? request.Config(config), timeout(patience)) {
+    whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
       _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> pool)))
     }
   }
@@ -95,7 +93,7 @@ class TestConfigurationFactorySpec extends FlatSpec {
       |   [test.ss, -arg, --arg2, foo/error]
       | ]
     """.stripMargin)
-    whenReady(subject ? request.Config(config), timeout(patience)) {
+    whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
       _ shouldEqual Failure(InvalidHipSpec("foo/error"))
     }
   }
@@ -116,7 +114,7 @@ class TestConfigurationFactorySpec extends FlatSpec {
         arguments = List("-arg", "--arg2"),
         specs = Map("foo" -> true, "bar" -> false)
       ))
-    whenReady(subject ? Config(config), timeout(patience)) {
+    whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
       _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> pool)))
     }
   }

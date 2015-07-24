@@ -5,12 +5,7 @@ import scala.pickling._
 import json._
 import scala.pickling.Defaults._
 
-/**
- * A schema of a configuration file used when running the CI.
- *
- * @author Evan Sebastian <evanlhoini@gmail.com>
- */
-
+/** A test configuration containing test results and test metadata. */
 object TestConfiguration {
   private case class PTestConfiguration
   (testID: String, projectDirectory : String, hipDirectory : String,
@@ -20,6 +15,7 @@ object TestConfiguration {
   private implicit val testConf = Pickler.generate[PTestConfiguration]
   private implicit val staticOnly = scala.pickling.static.StaticOnly
 
+  /** Field names in the file schema. */
   object Fields {
     val ProjectDirectory = "project_directory"
     val HipDirectory = "hip_directory"
@@ -27,6 +23,7 @@ object TestConfiguration {
     val Timeout = "timeout"
   }
 
+  /** Set of reserved keywords (i.e those that cannot be used as a suite). */
   def ReservedKeywords = {
     import Fields._
     Seq(ProjectDirectory, HipDirectory, SleekDirectory, Timeout).toSet
@@ -44,30 +41,39 @@ object TestConfiguration {
       test.tests.mapValues(_.map(_.unpickle[GenTest]).toSet).map(identity))
   }
 
+  /**
+   * Return a JSON string of a test configuration.
+   * @param test The test configuration
+   */
   def toJSON(test: TestConfiguration) = toP(test).pickle.value
 
-
+  /**
+   * Return a test configuration from a JSON string.
+   *
+   * The JSON string must be created previously using [[toJSON]] method.
+   * @param json The json string
+   */
   def fromJSON(json: String) = fromP(json.unpickle[PTestConfiguration])
 }
 
+/**
+ * A test configuration.
+ *
+ * @constructor Create a test configuration
+ * @param testID The unique identifier of the configuration.
+ * @param projectDirectory Base project directory relative from current dir.
+ * @param hipDirectory Base HIP test directory relative from project dir.
+ * @param sleekDirectory Base SLEEK test directory relative from project dir.
+ * @param timeout Patience time per test file.
+ * @param tests Test suites
+ */
 case class TestConfiguration
 (
-  /* ID of the test, taken from commit ID and hash of the config file */
   testID: String = "",
-
-  /* Base project directory, usually location of hip and sleek executable */
   projectDirectory : String = ".",
-
-  /* Location of HIP test cases, relative to project directory unless specified absolute path */
   hipDirectory : String = Paths.get("examples", "working", "sleek").toString,
-
-  /* Location of SLEEK test cases, relative to project directory unless given absolute path */
   sleekDirectory : String = Paths.get("examples", "working", "hip").toString,
-
-  /* How long the system should wait for a test to run until giving up */
   timeout: Long = 10000,
-
-  /* Test entries */
   tests: Map[String, Set[GenTest]] = Map.empty
 ) {
   /**

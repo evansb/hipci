@@ -18,9 +18,6 @@ import edu.nus.hipci.core._
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 class DaemonSpec extends FlatSpec {
-  import request._
-  import response._
-
   new Thread(new Main()).start()
 
   val system = ActorSystem("hipci-test", DefaultClientConfig)
@@ -45,30 +42,24 @@ class DaemonSpec extends FlatSpec {
           ))))
     var result : TestResult = null
     whenReady(subject ? SubmitTest(config)) {
-      _ match {
-        case promise: Promise[_] =>
-          result = Await.result(promise.future, 2.seconds).asInstanceOf[TicketAssigned]
-        case _ => assert(false)
-      }
+      case promise: Promise[_] =>
+        result = Await.result(promise.future, 2.seconds).asInstanceOf[TicketAssigned]
+      case _ => assert(false)
     }
     Thread.sleep(2000)
     val ticket = result.asInstanceOf[TicketAssigned].ticket
     whenReady (subject ? CheckTicket(ticket)) {
-      _ match {
-        case promise: Promise[_] =>
-          Await.result(promise.future, 2.seconds).isInstanceOf[TestComplete] shouldBe true
-        case _ => assert(false)
-      }
+      case promise: Promise[_] =>
+        Await.result(promise.future, 2.seconds).isInstanceOf[TestComplete] shouldBe true
+      case _ => assert(false)
     }
   }
 
   it should "respond to ping with ack" in {
     whenReady (subject ? Ping) {
-      _ match {
-        case promise: Promise[_] =>
-          Await.result(promise.future, 2.seconds) shouldEqual ACK
-        case _ => assert(false)
-      }
+      case promise: Promise[_] =>
+        Await.result(promise.future, 2.seconds) shouldEqual ACK
+      case _ => assert(false)
     }
   }
 

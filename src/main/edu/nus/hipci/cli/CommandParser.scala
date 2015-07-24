@@ -1,28 +1,49 @@
 package edu.nus.hipci.cli
 
-import akka.actor.Props
 import scopt._
 import edu.nus.hipci.core._
 
-/**
- * Parses a command line arguments to a Command object.
- *
- * @author Evan Sebastian <evanlhoini@gmail.com>
- */
-object CommandParser extends CLIComponentDescriptor {
-  val name = "CommandParser"
-  val subComponents = List.empty
-  val props = Props[CommandParser]
-}
+/** Base type of requests accepted by this component */
+sealed trait CommandParserRequest
 
+/**
+ * Request to parse a sequence of arguments.
+ *
+ * @constructor Create a request to parse a sequence of arguments.
+ * @param arguments The list of arguments to be parsed
+ */
+case class ParseArguments(arguments: Seq[String]) extends CommandParserRequest
+
+/** Request object to show help usage based on parser */
+case object ShowUsage extends CommandParserRequest
+
+/** Base type of responses sent by this component */
+sealed trait CommandParserResponse
+
+/**
+ * Parsed arguments as a response of [[edu.nus.hipci.cli.ParseArguments]]
+ * requests.
+ *
+ * @constructor Create a response of parse argument request.
+ * @param command The command object.
+ */
+case class ParsedArguments(command: Command) extends CommandParserResponse
+
+/** Singleton descriptor for [[CommandParser]] */
+object CommandParser extends ComponentDescriptor[CommandParser]
+
+/**
+ * Parses a list of arguments to a [[Command]] object
+ */
 class CommandParser extends CLIComponent {
-  val descriptor: CLIComponentDescriptor = CommandParser
+  /** Descriptor of this component */
+  val descriptor = CommandParser
 
   implicit object ZeroCommand extends Zero[Command] {
     def zero = EmptyCommand()
   }
 
-  protected object parser extends OptionParser[Command](AppName) {
+  private object parser extends OptionParser[Command](AppName) {
     val configFile =
       arg[String]("config_file") required() action {
         (cf, previous) => previous match {
@@ -92,8 +113,6 @@ class CommandParser extends CLIComponent {
     }
   }
 
-  import request._
-  import response._
   override def receive = {
     case ParseArguments(args) =>
       sender ! ParsedArguments(parser.parse(args,

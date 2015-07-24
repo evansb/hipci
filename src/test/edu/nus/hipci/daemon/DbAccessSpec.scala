@@ -17,9 +17,6 @@ import edu.nus.hipci.core._
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 class DbAccessSpec extends FlatSpec {
-  import edu.nus.hipci.daemon.request._
-  import edu.nus.hipci.daemon.response._
-
   private object TestDb extends Instance(
     entities = Set(Entity[DbEntity]()),
     url = "jdbc:h2:mem:hipci-test",
@@ -33,29 +30,21 @@ class DbAccessSpec extends FlatSpec {
   "DbAccess" should "post and get entity" in {
     val config = TestConfiguration(testID = "commit", sleekDirectory = "Hello World")
     whenReady (subject ? Post(config), timeout(patience)) {
-      _ match {
-        case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
-      }
+      case QueryOk(c) => config.asInstanceOf[TestConfiguration] shouldEqual c
     }
     whenReady (subject ? Get("commit"), timeout(patience)) {
-      _ match {
-        case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
-      }
+      case QueryOk(c) => config.asInstanceOf[TestConfiguration] shouldEqual c
     }
   }
 
   it should "post and put entity" in {
     val config = TestConfiguration(testID = "commit2", sleekDirectory = "Hello World")
     whenReady (subject ? Post(config), timeout(patience)) {
-      _ match {
-        case QueryOk(config) => config.asInstanceOf[TestConfiguration] shouldEqual config
-      }
+      case QueryOk(c) => config.asInstanceOf[TestConfiguration] shouldEqual c
     }
     whenReady (subject ? Put("commit2", config.copy(sleekDirectory = "Hello New World")),
       timeout(patience)) {
-      _ match {
-        case QueryOk(config) => config.asInstanceOf[TestConfiguration].sleekDirectory shouldEqual "Hello New World"
-      }
+      case QueryOk(c) => c.asInstanceOf[TestConfiguration].sleekDirectory shouldEqual "Hello New World"
     }
   }
 

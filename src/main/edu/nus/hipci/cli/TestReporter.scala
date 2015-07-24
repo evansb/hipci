@@ -1,24 +1,27 @@
 package edu.nus.hipci.cli
 
-import scala.language.existentials
-import akka.actor.Props
 import pl.project13.scala.rainbow._
-
 import edu.nus.hipci.core._
 
-/**
- * Render a report from test results
- *
- * @author Evan Sebastian <evanlhoini@gmail.com>
- */
-object TestReporter extends CLIComponentDescriptor {
-  val name = "DiffUtils"
-  val props: Props = Props[TestReporter]
-  val subComponents = List()
-}
+sealed trait TestReporterRequest
 
-private class TestReporter extends CLIComponent {
-  protected val descriptor = TestReporter
+/**
+ * Request to create a test report from a list of test configuration.
+ *
+ * @constructor Create a test report request.
+ * @param configs List of test configuration to compare
+ * @param diffOnly Whether only difference should be displayed
+ */
+case class ReportTestResult(configs: List[TestConfiguration], diffOnly: Boolean)
+  extends TestReporterRequest
+
+/** Singleton descriptor for [[TestReporter]]. */
+object TestReporter extends ComponentDescriptor[TestReporter]
+
+/** Create various forms of report from test results. */
+class TestReporter extends CLIComponent {
+  /** Descriptor of this component */
+  val descriptor = TestReporter
 
   private object Tabulator {
     def format(table: Seq[Seq[Any]], color: Map[String, String => String])
@@ -50,7 +53,8 @@ private class TestReporter extends CLIComponent {
       cells.mkString("|", "|", "|")
     }
 
-    def rowSeparator(colSizes: Seq[Int]) = colSizes map { "-" * _ } mkString("+", "+", "+")
+    def rowSeparator(colSizes: Seq[Int]) =
+      colSizes map { "-" * _ } mkString("+", "+", "+")
   }
 
   private val coloring : Map[String, String => String] = Map(
@@ -75,7 +79,7 @@ private class TestReporter extends CLIComponent {
       }
 
     configs.foldRight(Map.empty[(String,String,String), Boolean])({ (c, acc) =>
-      c.tests.get(suite).getOrElse(Set.empty).foldRight(acc)({ (u, acc) =>
+      c.tests.getOrElse(suite, Set.empty).foldRight(acc)({ (u, acc) =>
         u.specs.foldRight(acc)({ (v, acc) =>
           acc + (((c.testID, u.path , v._1), v._2))
         })
@@ -95,13 +99,13 @@ private class TestReporter extends CLIComponent {
         })
       if (!onlyDiff) {
         var table = body
-        table = header("proc", configs) :: (table.sortBy(_.head))
+        table = header("proc", configs) :: table.sortBy(_.head)
         tableString ++= Tabulator.format(table, coloring)
         tableString ++= "\n"
       } else {
         var table = body.filter(s => s.tail.toSet.size == 1)
-        if (!table.isEmpty) {
-          table = header("proc", configs) :: (table.sortBy(_.head))
+        if (table.nonEmpty) {
+          table = header("proc", configs) :: table.sortBy(_.head)
           tableString ++= Tabulator.format(table, coloring)
           tableString ++= "\n"
         }
@@ -117,7 +121,7 @@ private class TestReporter extends CLIComponent {
 
   private def header(column: String, configs: List[TestConfiguration]) = {
     column :: configs.map((c) =>
-      " " + c.testID.substring(0, Math.min(c.testID.size, 8)))
+      " " + c.testID.substring(0, Math.min(c.testID.length, 8)))
   }
 
   private def report(diff: List[TestConfiguration], diffOnly: Boolean) : String = {
@@ -127,7 +131,7 @@ private class TestReporter extends CLIComponent {
     val suiteNames = diff.map(_.tests.keySet).reduce((s, t) => s.union(t))
     val suiteDiffTable = suiteNames.map(suiteDiff(_, diff))
       .filter(_.tail.toSet.size != 1).toList
-    if (!suiteDiffTable.isEmpty) {
+    if (suiteDiffTable.nonEmpty) {
       tableString ++= "Warning: Set of suites used are different\n".yellow
       tableString ++= Tabulator.format(header("suite", diff) ::
         suiteDiffTable.sortBy(_.head), coloring)
@@ -138,10 +142,9 @@ private class TestReporter extends CLIComponent {
     tableString ++= suiteNames.foldRight("")({ (x, acc) =>
       suiteTestDiff(x, diff, diffOnly) + acc
     })
-    tableString.toString
+    tableString.toString()
   }
 
-  import request._
   override def receive = {
     case ReportTestResult(result, diffOnly) => sender ! report(result, diffOnly)
     case other => super.receive(other)

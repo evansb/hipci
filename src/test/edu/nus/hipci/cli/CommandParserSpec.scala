@@ -13,9 +13,6 @@ import org.scalatest.Matchers._
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 class CommandParserSpec extends FlatSpec {
-  import request._
-  import response._
-
   val system = ActorSystem("hipci-test")
   val subject = system.actorOf(Props[CommandParser], "CommandParser")
   implicit val timeout = Timeout(1.seconds)

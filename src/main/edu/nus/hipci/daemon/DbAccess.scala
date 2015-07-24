@@ -2,30 +2,56 @@ package edu.nus.hipci.daemon
 
 import akka.actor.Props
 import sorm._
-
 import edu.nus.hipci.core._
 
 /**
- * Actor for accessing database
+ * Request handled by [[DbAccess]] instance
  *
- * @author Evan Sebastian <evanlhoini@gmail.com>
+ * Note the different naming conventions.
  */
+sealed trait DbQuery
 
+/** Post a test configuration to the database */
+case class Post(content : TestConfiguration) extends DbQuery
+
+/** Get a test configuration from the database */
+case class Get(testID: String) extends DbQuery
+
+/** Update a test configuration from the database */
+case class Put(testID: String, content: TestConfiguration) extends DbQuery
+
+/**
+ * Response emitted by [[DbAccess]] instance
+ *
+ * Note the different naming conventions.
+ */
+sealed trait DbQueryResult
+
+/** Indicates a successful query */
+case class QueryOk(entity: TestConfiguration) extends DbQueryResult
+
+/** Indicates that an element is not found */
+case object QueryNotFound extends DbQueryResult
+
+/**
+ * @constructor Database entity for test configuration
+ *
+ * @param testID The test id
+ * @param json The test configuration in JSON string format
+ */
 case class DbEntity(testID: String, json: String)
 
+/** Factory object for [[DbAccess]]  descriptor */
 object DbAccess {
   def apply(db: Instance) = {
-    new ComponentDescriptor  {
-      val name = "DbAccess"
-      val props = Props.create(classOf[DbAccess], db)
-      val subComponents = List.empty
+    new ComponentDescriptor[DbAccess] {
+      override val props = Props.create(classOf[DbAccess], db)
     }
   }
 }
 
+/** Process database queries. */
 class DbAccess(db: Instance) extends Component {
-  import request._
-  import response._
   protected val descriptor = DbAccess(db)
 
   protected def handleQuery(query: DbQuery) = query match {

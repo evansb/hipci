@@ -1,30 +1,27 @@
 package edu.nus.hipci.cli
 
 import scala.concurrent.Await
-import akka.actor.{ActorSystem, Props}
+import akka.actor.ActorSystem
 import akka.pattern._
-
 import edu.nus.hipci.core._
-import edu.nus.hipci.cli.request.InitCLI
 
-/**
- * Entry point of the CLI application.
- * @author Evan Sebastian <evanlhoini@gmail.com>
- */
-object Main extends CLIComponentDescriptor with App {
-  val name = "Main"
-  val props = Props[Main]
-  val subComponents = List(CommandParser, CommandDispatcher)
+sealed trait MainRequest
+case class InitCLI(args: Seq[String]) extends MainRequest
+case object KeepAlive extends MainRequest
+
+/** Singleton descriptor of the [[Main]] class. */
+object Main extends ComponentDescriptor with App {
+  override val subComponents = List(CommandParser, CommandDispatcher)
+
   val system = ActorSystem(AppName, DefaultClientConfig)
-
   this.register(system)
-  system.actorOf(Props[Main], "Main") ! InitCLI(args)
+  system.actorOf(props, name) ! InitCLI(args)
 }
 
+/** Entry point of the CLI Application */
 private class Main extends CLIComponent {
   val descriptor = Main
 
-  import request._
   override def receive = {
     case InitCLI(args) =>
       val commandParser = loadComponent(CommandParser)
