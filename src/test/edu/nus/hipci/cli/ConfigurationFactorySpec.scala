@@ -61,7 +61,7 @@ class ConfigurationFactorySpec extends FlatSpec {
       """
         | infinity = [
         |   [test.ss, -arg, --arg2, foo.SUCCESS, bar.FAIL],
-        |   [test.slk, VALID, INVALID]
+        |   [test.slk, VALID.2, INVALID]
         | ]
       """.stripMargin)
 
@@ -76,7 +76,7 @@ class ConfigurationFactorySpec extends FlatSpec {
         path = "test.slk",
         kind = "sleek",
         arguments = List(),
-        specs = Map("1" -> true, "2" -> false)
+        specs = Map("1" -> true, "1.1" -> true, "1.2" -> true, "2" -> false)
       )
     )
 

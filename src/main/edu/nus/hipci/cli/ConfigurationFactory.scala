@@ -95,8 +95,21 @@ class ConfigurationFactory extends CLIComponent {
     }
   }
 
-  private def parseSingleSleekSpec(spec: String) =
-    spec.toUpperCase.equals(SleekValid)
+  private def parseSingleSleekSpec(entailment: Int, spec: String) =
+    if (!spec.contains(".")) {
+      Map(entailment.toString -> spec.toUpperCase.equals(SleekValid))
+    } else {
+      val token = spec.split('.')
+      if (token.length != 2) {
+        throw InvalidHipSpec(spec)
+      } else {
+        val expectInfer = (1 to token(1).toInt)
+          .foldRight(Map.empty[String, Boolean])({ (p, acc) =>
+            acc + (s"$entailment.$p" -> true)
+          })
+        expectInfer + (entailment.toString -> token(0).equals(SleekValid))
+      }
+    }
 
   private def toGenTest(data: List[String]) = {
     data match {
@@ -111,7 +124,7 @@ class ConfigurationFactory extends CLIComponent {
         } else {
           val indexedSpecs = specs.zipWithIndex.map((p) => p.copy(_2 = p._2 + 1))
           val sleekSpec = indexedSpecs.foldRight[Map[String, Boolean]](Map.empty)({
-            (p, acc) => acc + ((p._2.toString, parseSingleSleekSpec(p._1)))
+            (p, acc) => acc ++ parseSingleSleekSpec(p._2, p._1.toString)
           })
           Some(GenTest(filename, SleekTest, arguments, sleekSpec))
         }
