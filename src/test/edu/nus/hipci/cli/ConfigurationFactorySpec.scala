@@ -20,9 +20,9 @@ import edu.nus.hipci.core._
  *
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
-class TestConfigurationFactorySpec extends FlatSpec {
+class ConfigurationFactorySpec extends FlatSpec {
   val system = ActorSystem("hipci-test")
-  val subject = TestConfigurationFactory.register(system)
+  val subject = ConfigurationFactory.register(system)
 
   val patience = Span(10, Seconds)
   implicit val akkaTimeout = Timeout(10.seconds)

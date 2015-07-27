@@ -19,7 +19,7 @@ sealed trait CommandDispatcherResponse
 /** Singleton descriptor for [[CommandDispatcher]] */
 object CommandDispatcher extends ComponentDescriptor[CommandDispatcher] {
   /** Sub-components of the descriptor */
-  override val subComponents = List(TestConfigurationFactory, CommandParser,
+  override val subComponents = List(ConfigurationFactory, CommandParser,
     TestReporter, Hg)
 }
 
@@ -34,7 +34,7 @@ class CommandDispatcher extends CLIComponent {
   val descriptor = CommandDispatcher
 
   lazy private val testConfigurationFactory =
-    loadComponent(TestConfigurationFactory)
+    loadComponent(ConfigurationFactory)
   lazy private val reporter = loadComponent(TestReporter)
   lazy private val hg = loadComponent(Hg)
   lazy private val commandParser = loadComponent(CommandParser)
@@ -96,7 +96,7 @@ class CommandDispatcher extends CLIComponent {
       val configFile = Paths.get(command.config).toFile
       if (configFile == null) throw FileNotFound(command.config)
       val config = ConfigFactory.parseFile(configFile)
-      val configHash = TestConfigurationFactory.computeConfigSHA(config)
+      val configHash = ConfigurationFactory.computeConfigSHA(config)
 
       // From the repository, get the list of absolute revision hashes
       val key = TestConfiguration.Fields.ProjectDirectory

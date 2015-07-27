@@ -12,7 +12,7 @@ import com.github.kxbmap.configs._
 import edu.nus.hipci.core._
 import edu.nus.hipci.hg._
 
-sealed trait TestConfigurationFactoryRequest
+sealed trait ConfigurationFactoryRequest
 
 /**
  * Request to create a test configuration from a Config object
@@ -21,11 +21,20 @@ sealed trait TestConfigurationFactoryRequest
  * @param config The config object
  */
 case class CreateTestConfiguration(config: Config)
-  extends TestConfigurationFactoryRequest
+  extends ConfigurationFactoryRequest
 
-/** Singleton descriptor for [[TestConfigurationFactory]] */
-object TestConfigurationFactory
-  extends ComponentDescriptor[TestConfigurationFactory] {
+/**
+ * Request to create an application configuration from a Config object
+ *
+ * @constructor Create a request from a config object
+ * @param config The config object
+ */
+case class CreateAppConfiguration(config: Config)
+  extends ConfigurationFactoryRequest
+
+/** Singleton descriptor for [[ConfigurationFactory]] */
+object ConfigurationFactory
+  extends ComponentDescriptor[ConfigurationFactory] {
   override val subComponents = List(Hg)
 
   /**
@@ -44,8 +53,8 @@ object TestConfigurationFactory
 }
 
 /** Creates a TestConfiguration from a Config object. */
-class TestConfigurationFactory extends CLIComponent {
-  val descriptor = TestConfigurationFactory
+class ConfigurationFactory extends CLIComponent {
+  val descriptor = ConfigurationFactory
 
   protected def fromConfig(config: Config): Try[TestConfiguration] = {
     import TestConfiguration.Fields._
@@ -71,9 +80,9 @@ class TestConfigurationFactory extends CLIComponent {
     revision match {
       case RevisionDirty(rev) =>
         logger.error(DirtyRepository(projectDirectory).getMessage)
-        rev + "@" + TestConfigurationFactory.computeConfigSHA(config)
+        rev + "@" + ConfigurationFactory.computeConfigSHA(config)
       case RevisionClean(rev) =>
-        rev + "@" + TestConfigurationFactory.computeConfigSHA(config)
+        rev + "@" + ConfigurationFactory.computeConfigSHA(config)
       case MercurialError(_) => ""
     }
   }
@@ -129,6 +138,7 @@ class TestConfigurationFactory extends CLIComponent {
 
   override def receive = {
     case CreateTestConfiguration(config) => sender ! fromConfig(config)
+    case CreateAppConfiguration(config) => sender ! fromConfig(config)
     case other => super.receive(other)
   }
 }
