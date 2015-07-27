@@ -10,10 +10,6 @@ import org.scalatest._
 class TestConfigurationSpec extends FlatSpec {
   "TestConfiguration" should "support JSON deserialization" in {
     val config = TestConfiguration(
-      projectDirectory = "vendor",
-      hipDirectory = "../fixtures/hip",
-      sleekDirectory = "../fixtures/sleek",
-      timeout = 10000,
       tests = Map(
         "test" -> Set(
           GenTest(

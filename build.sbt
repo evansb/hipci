@@ -50,7 +50,7 @@ lazy val hipci = (project in file(".")).
     name := "hipci",
     version := "1.0",
     resolvers += "Akka Snapshot Repository" at "http://repo.akka.io/snapshots/",
-    logLevel := Level.Error,
+    logLevel := Level.Warn,
     libraryDependencies ++= Seq(h2, scalaTest, akkaActor, akkaRemote,
       typesafeConfig, scopt, config, scalaRainbow, scalaLibrary,
       scalaCompiler, embrace, sorm, slf4j, pickling),

@@ -25,12 +25,12 @@ class TestExecutorSpec extends FlatSpec {
   implicit val akkaTimeout = Timeout(10.seconds)
   val path = System.getenv().get("PATH")
 
+  AppConfiguration.global.projectDirectory = "vendor"
+  AppConfiguration.global.hipDirectory = "../fixtures/hip"
+  AppConfiguration.global.sleekDirectory = "../fixtures/sleek"
+
   "TestExecutor" should "execute simple HIP/SLEEK test suite" in {
     val config = TestConfiguration(
-      projectDirectory = "vendor",
-      hipDirectory = "../fixtures/hip",
-      sleekDirectory = "../fixtures/sleek",
-      timeout = 10000,
       tests = Map(
         "test" -> Set(
           GenTest(

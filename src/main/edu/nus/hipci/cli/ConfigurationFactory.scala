@@ -24,12 +24,12 @@ case class CreateTestConfiguration(config: Config)
   extends ConfigurationFactoryRequest
 
 /**
- * Request to create an application configuration from a Config object
+ * Request to load a global application configuration from a Config object
  *
  * @constructor Create a request from a config object
  * @param config The config object
  */
-case class CreateAppConfiguration(config: Config)
+case class LoadAppConfiguration(config: Config)
   extends ConfigurationFactoryRequest
 
 /** Singleton descriptor for [[ConfigurationFactory]] */
@@ -57,16 +57,10 @@ class ConfigurationFactory extends CLIComponent {
   val descriptor = ConfigurationFactory
 
   protected def fromConfig(config: Config): Try[TestConfiguration] = {
-    import TestConfiguration.Fields._
     try {
-      val defaultSchema = TestConfiguration()
-      val projectDirectory = config.getOrElse[String](ProjectDirectory, defaultSchema.projectDirectory)
-      val hipDirectory = config.getOrElse[String](HipDirectory, defaultSchema.hipDirectory)
-      val sleekDirectory = config.getOrElse[String](SleekDirectory, defaultSchema.sleekDirectory)
-      val timeout = config.getOrElse[Long](Timeout, defaultSchema.timeout)
       val tests = collectTestsFromConfig(config)
-      val testID = computeTestID(projectDirectory, config)
-      Success(TestConfiguration(testID, projectDirectory, hipDirectory, sleekDirectory, timeout, tests))
+      val testID = computeTestID("foo", config)
+      Success(TestConfiguration(testID, tests))
     } catch {
       case e:InvalidHipSpec => Failure(e)
     }
@@ -74,8 +68,7 @@ class ConfigurationFactory extends CLIComponent {
 
   private def computeTestID(projectDirectory: String, config: Config) : String = {
     val hg = loadComponent(Hg)
-    val revision = Await.result(
-      hg ? GetCurrentRevision(Paths.get(projectDirectory)),
+    val revision = Await.result(hg ? GetCurrentRevision(Paths.get(projectDirectory)),
       timeout.duration)
     revision match {
       case RevisionDirty(rev) =>
@@ -120,11 +113,10 @@ class ConfigurationFactory extends CLIComponent {
   }
 
   private def collectTestsFromConfig(config: Config) = {
-    import TestConfiguration._
     import scala.collection.JavaConverters._
     type JList[T] = java.util.List[T]
 
-    val entries = JavaConversions asScalaSet config.entrySet filterNot((e) => ReservedKeywords.contains(e.getKey))
+    val entries = JavaConversions asScalaSet config.entrySet
     entries.foldRight[Map[String, Set[GenTest]]](HashMap.empty)({
       (en, acc) =>
         val rawTestEntry = config.getValue(en.getKey).unwrapped().asInstanceOf[JList[JList[String]]]
@@ -136,9 +128,19 @@ class ConfigurationFactory extends CLIComponent {
     })
   }
 
+  private def loadAppConfig(config: Config) = {
+    import AppConfiguration.Fields._
+    val app = AppConfiguration.global
+    app.projectDirectory = config.getOrElse[String](ProjectDirectory, app.projectDirectory)
+    app.hipDirectory = config.getOrElse[String](HipDirectory, app.hipDirectory)
+    app.sleekDirectory = config.getOrElse[String](SleekDirectory, app.sleekDirectory)
+    app.daemonHost = config.getOrElse[String](DaemonHost, app.daemonHost)
+    app.daemonPort = config.getOrElse[String](DaemonPort, app.daemonPort)
+  }
+
   override def receive = {
     case CreateTestConfiguration(config) => sender ! fromConfig(config)
-    case CreateAppConfiguration(config) => sender ! fromConfig(config)
+    case LoadAppConfiguration(config) => sender ! loadAppConfig(config)
     case other => super.receive(other)
   }
 }

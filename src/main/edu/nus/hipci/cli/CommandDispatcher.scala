@@ -99,7 +99,7 @@ class CommandDispatcher extends CLIComponent {
       val configHash = ConfigurationFactory.computeConfigSHA(config)
 
       // From the repository, get the list of absolute revision hashes
-      val key = TestConfiguration.Fields.ProjectDirectory
+      val key = AppConfiguration.Fields.ProjectDirectory
       val repoDir = Paths.get(config.getString(key))
       if (repoDir.toFile == null) throw FileNotFound(repoDir.toString)
       val future1 = hg ? GetRevisionHash(repoDir, revisions)

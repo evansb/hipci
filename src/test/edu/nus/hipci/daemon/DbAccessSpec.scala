@@ -26,9 +26,11 @@ class DbAccessSpec extends FlatSpec {
   val subject = system.actorOf(DbAccess(TestDb).props, "DbAccess")
   implicit val akkaTimeout = Timeout(5.seconds)
   val patience = Span(10, Seconds)
+  val mockTest = Map("Hello World" -> Set.empty[GenTest])
+  val mockTest2 = Map("Hello New World" -> Set.empty[GenTest])
 
   "DbAccess" should "post and get entity" in {
-    val config = TestConfiguration(testID = "commit", sleekDirectory = "Hello World")
+    val config = TestConfiguration(testID = "commit", tests = mockTest)
     whenReady (subject ? Post(config), timeout(patience)) {
       case QueryOk(c) => config.asInstanceOf[TestConfiguration] shouldEqual c
     }
@@ -38,13 +40,13 @@ class DbAccessSpec extends FlatSpec {
   }
 
   it should "post and put entity" in {
-    val config = TestConfiguration(testID = "commit2", sleekDirectory = "Hello World")
+    val config = TestConfiguration(testID = "commit2", tests = mockTest)
     whenReady (subject ? Post(config), timeout(patience)) {
       case QueryOk(c) => config.asInstanceOf[TestConfiguration] shouldEqual c
     }
-    whenReady (subject ? Put("commit2", config.copy(sleekDirectory = "Hello New World")),
+    whenReady (subject ? Put("commit2", config.copy(tests = mockTest2)),
       timeout(patience)) {
-      case QueryOk(c) => c.asInstanceOf[TestConfiguration].sleekDirectory shouldEqual "Hello New World"
+      case QueryOk(c) => c.asInstanceOf[TestConfiguration].tests shouldEqual mockTest2
     }
   }
 

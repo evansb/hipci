@@ -27,33 +27,32 @@ class ConfigurationFactorySpec extends FlatSpec {
   val patience = Span(10, Seconds)
   implicit val akkaTimeout = Timeout(10.seconds)
 
-  val defaultConfig = TestConfiguration()
-
   "TestConfigurationFactory" should "parse empty configuration" in {
     val config = ConfigFactory.parseString(
       """
         |
       """.stripMargin)
     whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
-      _ shouldEqual Success(defaultConfig)
+      _ shouldEqual Success(TestConfiguration())
     }
   }
 
-  it should "parse some configuration with empty spec" in {
+  it should "load app configuration" in {
     val config = ConfigFactory.parseString(
       """
         | project_directory = some_directory
         | hip_directory = custom/hip
         | sleek_directory = custom/sleek
-        | timeout = 2000
+        | daemon_host = "127.0.0.1"
+        | daemon_port = 2552
       """.stripMargin)
-    whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
-      _ shouldEqual Success(defaultConfig.copy(
+    whenReady(subject ? LoadAppConfiguration(config), timeout(patience)) { _ =>
+      AppConfiguration.global shouldEqual AppConfiguration(
         projectDirectory = "some_directory",
         hipDirectory = "custom/hip",
         sleekDirectory = "custom/sleek",
-        timeout = 2000
-      ))
+        daemonHost = "127.0.0.1",
+        daemonPort = "2552")
     }
   }
 
@@ -82,7 +81,7 @@ class ConfigurationFactorySpec extends FlatSpec {
     )
 
     whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
-      _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> pool)))
+      _ shouldEqual Success(TestConfiguration(testID = "", tests = Map("infinity" -> pool)))
     }
   }
 
@@ -115,7 +114,7 @@ class ConfigurationFactorySpec extends FlatSpec {
         specs = Map("foo" -> true, "bar" -> false)
       ))
     whenReady(subject ? CreateTestConfiguration(config), timeout(patience)) {
-      _ shouldEqual Success(defaultConfig.copy(tests = Map("infinity" -> pool)))
+      _ shouldEqual Success(TestConfiguration(testID = "", tests = Map("infinity" -> pool)))
     }
   }
 }

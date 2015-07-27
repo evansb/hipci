@@ -23,15 +23,15 @@ class DaemonSpec extends FlatSpec {
   val system = ActorSystem("hipci-test", DefaultClientConfig)
   val daemon = system.actorSelection("akka.tcp://hipci@127.0.0.1:2552/user/Daemon")
   val subject = Forwarder.newForwarder(system, daemon)
-  implicit val timeout = Timeout(1.seconds)
+  implicit val timeout = Timeout(10.seconds)
   val path = System.getenv().get("PATH")
+
+  AppConfiguration.global.projectDirectory = "vendor"
+  AppConfiguration.global.hipDirectory = "../fixtures/hip"
+  AppConfiguration.global.sleekDirectory = "../fixtures/sleek"
 
   "Daemon" should "assign ticket for test request and get the result later" in {
     val config = TestConfiguration(
-      projectDirectory = "vendor",
-      hipDirectory = "../fixtures/hip",
-      sleekDirectory = "../fixtures/sleek",
-      timeout = 10000,
       tests = Map(
         "test" -> Set(
           GenTest(

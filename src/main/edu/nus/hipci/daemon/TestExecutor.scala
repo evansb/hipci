@@ -71,6 +71,8 @@ class TestExecutor extends Component {
   }
 
   private def executeConfig(sender: ActorRef, config: TestConfiguration) = {
+    val app = AppConfiguration.global
+    val timeout = 10000
     val promise = Promise[TestResult]()
     val init = Future { Map.empty[String, Set[GenTest]] }
     config.tests.foldLeft(init)({ (acc, entry) =>
@@ -78,11 +80,11 @@ class TestExecutor extends Component {
       val pool = entry._2
       acc map {
         case m =>
-          val baseDir = Paths.get(config.projectDirectory)
-          val hipDir = Paths.get(config.hipDirectory)
-          val sleekDir = Paths.get(config.sleekDirectory)
+          val baseDir = Paths.get(app.projectDirectory)
+          val hipDir = Paths.get(app.hipDirectory)
+          val sleekDir = Paths.get(app.sleekDirectory)
           val result = Await.result(executeSingleSuite(baseDir, hipDir, sleekDir,
-            name, pool, config.timeout.millis), (config.timeout * pool.size).millis)
+            name, pool, timeout.millis), (timeout * pool.size).millis)
           m + ((name, result))
       }
     }).andThen({

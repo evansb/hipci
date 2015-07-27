@@ -1,44 +1,23 @@
 package edu.nus.hipci.core
 
-import java.nio.file.Paths
 import scala.pickling._
 import json._
 import scala.pickling.Defaults._
 
 /** A test configuration containing test results and test metadata. */
 object TestConfiguration {
-  private case class PTestConfiguration
-  (testID: String, projectDirectory : String, hipDirectory : String,
-   sleekDirectory : String, timeout: Long, tests: Map[String, Seq[String]])
+  private case class PTestConfiguration(testID: String, tests: Map[String, Seq[String]])
 
   private implicit val genTest = Pickler.generate[GenTest]
   private implicit val testConf = Pickler.generate[PTestConfiguration]
   private implicit val staticOnly = scala.pickling.static.StaticOnly
 
-  /** Field names in the file schema. */
-  object Fields {
-    val ProjectDirectory = "project_directory"
-    val HipDirectory = "hip_directory"
-    val SleekDirectory = "sleek_directory"
-    val Timeout = "timeout"
-  }
-
-  /** Set of reserved keywords (i.e those that cannot be used as a suite). */
-  def ReservedKeywords = {
-    import Fields._
-    Seq(ProjectDirectory, HipDirectory, SleekDirectory, Timeout).toSet
-  }
-
   private def toP(test: TestConfiguration): PTestConfiguration = {
-    PTestConfiguration(test.testID, test.projectDirectory, test.hipDirectory,
-      test.sleekDirectory, test.timeout, test.tests.mapValues(
-        _.toSeq .map(_.pickle.value).map(identity)))
+    PTestConfiguration(test.testID, test.tests.mapValues(_.toSeq .map(_.pickle.value).map(identity)))
   }
 
   private def fromP(test: PTestConfiguration): TestConfiguration = {
-    TestConfiguration(test.testID, test.projectDirectory, test.hipDirectory,
-      test.sleekDirectory, test.timeout,
-      test.tests.mapValues(_.map(_.unpickle[GenTest]).toSet).map(identity))
+    TestConfiguration(test.testID, test.tests.mapValues(_.map(_.unpickle[GenTest]).toSet).map(identity))
   }
 
   /**
@@ -61,19 +40,11 @@ object TestConfiguration {
  *
  * @constructor Create a test configuration
  * @param testID The unique identifier of the configuration.
- * @param projectDirectory Base project directory relative from current dir.
- * @param hipDirectory Base HIP test directory relative from project dir.
- * @param sleekDirectory Base SLEEK test directory relative from project dir.
- * @param timeout Patience time per test file.
  * @param tests Test suites
  */
 case class TestConfiguration
 (
   testID: String = "",
-  projectDirectory : String = ".",
-  hipDirectory : String = Paths.get("examples", "working", "sleek").toString,
-  sleekDirectory : String = Paths.get("examples", "working", "hip").toString,
-  timeout: Long = 10000,
   tests: Map[String, Set[GenTest]] = Map.empty
 ) {
   /**
