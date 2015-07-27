@@ -6,7 +6,9 @@ import scala.concurrent.Await
 import scala.util.{Try, Success, Failure}
 import scala.collection.JavaConversions
 import scala.collection.immutable.{HashSet, HashMap}
+import scala.io._
 import akka.pattern._
+import pl.project13.scala.rainbow._
 import com.typesafe.config.Config
 import com.github.kxbmap.configs._
 import edu.nus.hipci.core._
@@ -30,6 +32,10 @@ case class CreateTestConfiguration(config: Config)
  * @param config The config object
  */
 case class LoadAppConfiguration(config: Config)
+  extends ConfigurationFactoryRequest
+
+/** Create AppConfiguration interactively by asking the user some questions. */
+case object CreateAppConfigurationInteractively
   extends ConfigurationFactoryRequest
 
 /** Singleton descriptor for [[ConfigurationFactory]] */
@@ -138,9 +144,48 @@ class ConfigurationFactory extends CLIComponent {
     app.daemonPort = config.getOrElse[String](DaemonPort, app.daemonPort)
   }
 
+  private def createAppConfigurationInteractively() = {
+    type Question = (String, (String, AppConfiguration) => AppConfiguration)
+    val runQuestion = { (previous: AppConfiguration, question: Question) =>
+      Console.out.println(question._1.cyan)
+      val line = Console.in.readLine()
+      question._2(line, previous)
+    }
+
+    val runQuestions = { (questions: Seq[Question]) =>
+      questions.foldLeft(AppConfiguration())(runQuestion)
+    }
+
+    val questions = Seq(
+      ("Where is the HIP/SLEEK project directory located?. You can input relative path from this directory or " +
+        " an absolute path",
+        (input: String, appConfig:AppConfiguration) =>
+          appConfig.copy(projectDirectory = input)),
+      (s"What is the HIP test directory? default: [${AppConfiguration.global.hipDirectory }]",
+        (input: String, appConfig:AppConfiguration) => appConfig.copy(hipDirectory = input)),
+
+      (s"What is the SLEEK test directory? default: [${AppConfiguration.global.sleekDirectory }]",
+        (input: String, appConfig:AppConfiguration) => appConfig.copy(sleekDirectory = input)),
+
+      (s"What is the Daemon host addresss? default: [${AppConfiguration.global.daemonHost }]",
+        (input: String, appConfig:AppConfiguration) => appConfig.copy(daemonHost = input)),
+
+      (s"What is the Daemon port number? default: [${AppConfiguration.global.daemonPort }]",
+        (input: String, appConfig:AppConfiguration) => appConfig.copy(daemonPort = input))
+    )
+
+    val config = AppConfiguration.toConfig(runQuestions(questions))
+
+    import java.io._
+    val pw = new PrintWriter(Paths.get(HipciConf).toFile())
+    pw.write(config.toString())
+    pw.close()
+  }
+
   override def receive = {
     case CreateTestConfiguration(config) => sender ! fromConfig(config)
     case LoadAppConfiguration(config) => sender ! loadAppConfig(config)
+    case CreateAppConfigurationInteractively => createAppConfigurationInteractively()
     case other => super.receive(other)
   }
 }

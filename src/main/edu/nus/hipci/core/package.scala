@@ -32,35 +32,5 @@ package object core {
 
   val SleekTest = "sleek"
 
-  val DefaultClientConfig = ConfigFactory parseString
-    """
-      | akka {
-      |  loglevel = "ERROR"
-      |  actor {
-      |    provider = "akka.remote.RemoteActorRefProvider"
-      |  }
-      |  remote {
-      |    netty.tcp {
-      |      hostname = "127.0.0.1"
-      |      port = 0
-      |    }
-      |  }
-      |}
-    """.stripMargin
-
-  val DefaultServerConfig = ConfigFactory.parseString(
-    """
-      | akka {
-      |   loglevel = "ERROR"
-      |   actor {
-      |     provider = "akka.remote.RemoteActorRefProvider"
-      |   }
-      |   remote {
-      |     netty.tcp {
-      |       hostname = "127.0.0.1"
-      |       port = 2552
-      |     }
-      |   }
-      | }
-    """.stripMargin)
+  val HipciConf = "hipci.conf"
 }

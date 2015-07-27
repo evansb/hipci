@@ -10,7 +10,7 @@ import edu.nus.hipci.core._
 class Main() extends Runnable {
 
   override def run(): Unit = {
-    val system = ActorSystem(AppName, DefaultServerConfig)
+    val system = ActorSystem(AppName, AppConfiguration.getServerConfig())
     if (Daemon.get(system).isEmpty) {
       object defaultDatabase extends Instance(
         entities = Set(Entity[DbEntity]()),

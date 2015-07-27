@@ -2,6 +2,8 @@ package edu.nus.hipci.core
 
 import java.nio.file.Paths
 
+import com.typesafe.config.{ConfigValueFactory, ConfigFactory}
+
 /** Application Configuration constants */
 object AppConfiguration {
   /** Field names in the file schema. */
@@ -15,7 +17,50 @@ object AppConfiguration {
 
   /** Global App configuration */
   val global : AppConfiguration = AppConfiguration()
+
+  def getClientConfig() = ConfigFactory parseString
+    """
+      | akka {
+      |  loglevel = "ERROR"
+      |  actor {
+      |    provider = "akka.remote.RemoteActorRefProvider"
+      |  }
+      |  remote {
+      |    netty.tcp {
+      |      hostname = "127.0.0.1"
+      |      port = 0
+      |    }
+      |  }
+      |}
+    """.stripMargin
+
+  def getServerConfig() = ConfigFactory.parseString(
+    s"""
+      | akka {
+      |   loglevel = "ERROR"
+      |   actor {
+      |     provider = "akka.remote.RemoteActorRefProvider"
+      |   }
+      |   remote {
+      |     netty.tcp {
+      |       hostname = "${ global.daemonHost }"
+      |       port = ${ global.daemonPort }
+      |     }
+      |   }
+      | }
+    """.stripMargin)
+
+  def toConfig(config: AppConfiguration) = {
+    import Fields._
+    ConfigFactory.empty()
+      .withValue(ProjectDirectory, ConfigValueFactory.fromAnyRef(config.projectDirectory))
+      .withValue(HipDirectory, ConfigValueFactory.fromAnyRef(config.projectDirectory))
+      .withValue(SleekDirectory, ConfigValueFactory.fromAnyRef(config.projectDirectory))
+      .withValue(DaemonHost, ConfigValueFactory.fromAnyRef(config.daemonHost))
+      .withValue(DaemonPort, ConfigValueFactory.fromAnyRef(config.daemonPort))
+  }
 }
+
 
 /**
  * Models Application Configuration

@@ -20,7 +20,7 @@ import edu.nus.hipci.core._
 class DaemonSpec extends FlatSpec {
   new Thread(new Main()).start()
 
-  val system = ActorSystem("hipci-test", DefaultClientConfig)
+  val system = ActorSystem("hipci-test", AppConfiguration.getClientConfig())
   val daemon = system.actorSelection("akka.tcp://hipci@127.0.0.1:2552/user/Daemon")
   val subject = Forwarder.newForwarder(system, daemon)
   implicit val timeout = Timeout(10.seconds)
