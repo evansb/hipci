@@ -34,6 +34,14 @@ class OutputParserSpec extends FlatSpec {
     }
   }
 
+  it should "parse sleek output with expect infer correctly" in {
+    val output = scala.io.Source.fromFile(Paths.get("fixtures","sleek-expect_infer.txt").toFile).mkString
+    Console.out.println(output)
+    whenReady(subject ? ParseSleekOutput(output)) {
+      _ shouldEqual ParsedSleekOutput(Map("22" -> true, "22.1" -> true, "23" -> true, "23.1" -> true, "23.2" -> false))
+    }
+  }
+
   it should "extract hip output given a set of procedure names" in {
     val output = scala.io.Source.fromFile(Paths.get("fixtures","ll-output.txt").toFile).mkString
     whenReady(subject ? FilterHipOutput(output, Set("append", "create_list"))) {

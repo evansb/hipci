@@ -89,6 +89,8 @@ class OutputParser extends Component {
       line match {
         case SleekOutputRegex(number, result) =>
           acc + ((number, result.toUpperCase.equals(SleekValid)))
+        case SleekExpectInferRegex(number, result) =>
+          acc + ((number, result.toUpperCase.equals("OK")))
         case _ => acc
       }
     })

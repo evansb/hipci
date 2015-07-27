@@ -20,9 +20,14 @@ package object core {
 
   def SleekInvalid = "INVALID"
 
-  val HipOutputRegex = """Procedure\s(\w*)\$\S*\s(\w*).*$""".r
+  val HipOutputRegex =
+    """Procedure\s(\w*)\$\S*\s(\w*).*$""".r
 
-  val SleekOutputRegex = """Entail\s(\d*):\s(\w*).*$""".r
+  val SleekOutputRegex =
+    """Entail\s\(?(\d*)\)?\s?:\s(\w*).*$""".r
+
+  val SleekExpectInferRegex =
+    """Expect_Infer\s((?:\w|\.)*):\s(\w*).*$""".r
 
   val HipExtension = ".ss"
 

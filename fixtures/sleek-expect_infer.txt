@@ -1,0 +1,44 @@
+Entail (22) : Valid.
+
+Residue:
+ <1>hfalse&false&{FLOW,(20,21)=__norm#E}[]
+ inferred pure: [x!=null]
+
+
+!!! **sleekengine.ml#1677:str:
+
+Expect_Infer 22.1:
+!!! **sleekengine.ml#1678:res_f_str:( emp&x!=null&{FLOW,(20,21)=__norm#E}[])
+Expect_Infer 22.1: OK.
+
+Entail (23) : Valid.
+
+Residue:
+ <1>hfalse&false&{FLOW,(20,21)=__norm#E}[]
+ inferred pure: [y!=null]
+
+
+!!! **sleekengine.ml#1677:str:
+
+Expect_Infer 23.1:
+!!! **sleekengine.ml#1678:res_f_str:( emp&y!=null&{FLOW,(20,21)=__norm#E}[])
+Expect_Infer 23.1: OK.
+
+
+Expect_Infer 23.2:
+!!! **sleekengine.ml#1678:res_f_str:( emp&y!=null&{FLOW,(20,21)=__norm#E}[])
+Expect_Infer 23.2: FAIL.
+
+Unexpected List: [4.1,11.1,12.1]
+
+Stop z3... 402 invocations Stop Omega... 97 invocations
+SAT Count   : 257
+SAT % Hit   : 94.94%
+IMPLY Count : 177
+IMPLY % Hit : 84.74%
+Time(cache overhead) : 0.050859 (seconds)
+
+!!! log(small):(0.839954,635)
+Total verification time: 0.647946 second(s)
+	Time spent in main process: 0.471159 second(s)
+	Time spent in child processes: 0.176787 second(s)
