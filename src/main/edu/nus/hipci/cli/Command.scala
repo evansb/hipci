@@ -4,6 +4,12 @@ package edu.nus.hipci.cli
 trait Command
 
 /**
+ * Models a command to create an application configuration file int
+ * interactively.
+ */
+case object InitCommand extends Command
+
+/**
  * Models a command to run a test configuration.
  *
  * @constructor Creates a run command.
@@ -29,7 +35,7 @@ case class DiffCommand(config: String ="", revisions: List[String] = List())
  *
  * @constructor Creates a help command.
  */
-case class HelpCommand() extends Command
+case object HelpCommand extends Command
 
 /**
  * Models a command that does nothing.
@@ -38,21 +44,21 @@ case class HelpCommand() extends Command
  *
  * @constructor Creates an empty command.
  */
-case class EmptyCommand() extends Command
+case object EmptyCommand extends Command
 
 /**
  * Models a command to start the Daemon process.
  *
  * @constructor Creates a start command.
  */
-case class StartCommand() extends Command
+case object StartCommand extends Command
 
 /**
  * Models a command to stop the Daemon process.
  *
  * @constructor Creates a stop command.
  */
-case class StopCommand() extends Command
+case object StopCommand extends Command
 
 /** A command can be dispatched to return a request back to the component */
 trait Dispatcher[-T <: Command] {

@@ -29,16 +29,24 @@ class Main extends CLIComponent {
         val configFactory = loadComponent(ConfigurationFactory)
         configFactory ! LoadAppConfiguration(ConfigFactory.parseFile(hipciConf))
       } else {
-        logger bad s"File $HipciConf not found. Run hipci init to generate one"
-        System.exit(2)
       }
       val commandParser = loadComponent(CommandParser)
       val commandDispatcher = loadComponent(CommandDispatcher)
       val request = ParseArguments(args)
       val command = Await.result(commandParser? request, timeout.duration)
-      commandDispatcher ! command
+
+      command match {
+        case InitCommand | EmptyCommand | HelpCommand => commandDispatcher ! command
+        case _ => if (hipciConf.exists()) {
+          commandDispatcher ? command
+        } else {
+          logger bad s"File $HipciConf not found. Run hipci init to generate one"
+          System.exit(1)
+        }
+      }
     case Terminate(ec) => System.exit(ec)
     case KeepAlive => ()
+    case () => ()
     case other => super.receive(other)
   }
 }

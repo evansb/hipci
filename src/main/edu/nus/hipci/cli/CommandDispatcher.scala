@@ -1,9 +1,12 @@
 package edu.nus.hipci.cli
 
 import java.nio.file.Paths
+import scala.concurrent.duration._
 import scala.util._
 import scala.concurrent.Await
 import akka.pattern.ask
+import akka.actor._
+import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
 import edu.nus.hipci.core._
 import edu.nus.hipci.daemon._
@@ -48,6 +51,15 @@ class CommandDispatcher extends CLIComponent {
       case Success(testConfiguration) =>
         testConfiguration.asInstanceOf[TestConfiguration]
       case Failure(e) => throw e
+    }
+  }
+
+  /** Dispatch [[InitCommand]] instances */
+  private object InitCommandDispatcher {
+    def dispatch() = {
+      implicit val timeout = Timeout(10000.seconds)
+      Await.result(testConfigurationFactory ? CreateAppConfigurationInteractively, timeout.duration)
+      Terminate(0)
     }
   }
 
@@ -143,8 +155,8 @@ class CommandDispatcher extends CLIComponent {
   }
 
   /** Dispatch [[StartCommand]] instances */
-  private object StartCommandDispatcher extends Dispatcher[StartCommand] {
-    override def dispatch(command: StartCommand) = {
+  private object StartCommandDispatcher {
+    def dispatch() = {
       Daemon.get(context) map { (d) =>
         logger good "Daemon is already running"
       } getOrElse {
@@ -156,8 +168,8 @@ class CommandDispatcher extends CLIComponent {
   }
 
   /** Dispatch [[StopCommand]] instances */
-  private object StopCommandDispatcher extends Dispatcher[StopCommand] {
-    override def dispatch(command: StopCommand) = {
+  private object StopCommandDispatcher {
+    def dispatch() = {
       Daemon.get(context) map { (d) =>
         logger good "Terminating daemon"
         d ! StopDaemon
@@ -167,8 +179,8 @@ class CommandDispatcher extends CLIComponent {
   }
 
   /** Dispatch [[HelpCommand]] instances */
-  private object HelpCommandDispatcher extends Dispatcher[HelpCommand] {
-    override def dispatch(command: HelpCommand) = {
+  private object HelpCommandDispatcher {
+    def dispatch() = {
       val usage = Await.result(commandParser ? ShowUsage,
         timeout.duration).asInstanceOf[String]
       Console.out.println(usage)
@@ -177,8 +189,8 @@ class CommandDispatcher extends CLIComponent {
   }
 
   /** Dispatch [[EmptyCommand]] instances */
-  private object EmptyCommandDispatcher extends Dispatcher[EmptyCommand] {
-    override def dispatch(command: EmptyCommand) = {
+  private object EmptyCommandDispatcher {
+    def dispatch() = {
       commandParser ! ShowUsage
       Terminate(2)
     }
@@ -186,17 +198,18 @@ class CommandDispatcher extends CLIComponent {
 
   private object AllDispatcher extends Dispatcher[Command] {
     override def dispatch(command: Command) = command match {
+      case InitCommand => InitCommandDispatcher.dispatch()
       case p@(RunCommand(_, _)) => RunCommandDispatcher.dispatch(p)
       case p@(DiffCommand(_, _)) => DiffCommandDispatcher.dispatch(p)
-      case p@(HelpCommand()) => HelpCommandDispatcher.dispatch(p)
-      case p@(StartCommand()) => StartCommandDispatcher.dispatch(p)
-      case p@(StopCommand()) => StopCommandDispatcher.dispatch(p)
-      case p@(EmptyCommand()) => EmptyCommandDispatcher.dispatch(p)
+      case HelpCommand => HelpCommandDispatcher.dispatch()
+      case StartCommand => StartCommandDispatcher.dispatch()
+      case StopCommand => StopCommandDispatcher.dispatch()
+      case EmptyCommand => EmptyCommandDispatcher.dispatch()
     }
   }
 
   override def receive = {
-    case ParsedArguments(cmd) => sender ! AllDispatcher.dispatch(cmd)
+    case cmd:Command => sender ! AllDispatcher.dispatch(cmd)
     case other => super.receive(other)
   }
 }

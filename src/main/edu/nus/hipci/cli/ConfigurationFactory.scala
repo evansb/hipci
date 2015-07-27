@@ -9,7 +9,7 @@ import scala.collection.immutable.{HashSet, HashMap}
 import scala.io._
 import akka.pattern._
 import pl.project13.scala.rainbow._
-import com.typesafe.config.Config
+import com.typesafe.config.{ConfigRenderOptions, Config}
 import com.github.kxbmap.configs._
 import edu.nus.hipci.core._
 import edu.nus.hipci.hg._
@@ -177,15 +177,16 @@ class ConfigurationFactory extends CLIComponent {
     val config = AppConfiguration.toConfig(runQuestions(questions))
 
     import java.io._
+    val renderOpts = ConfigRenderOptions.defaults().setOriginComments(false).setComments(false).setJson(false);
     val pw = new PrintWriter(Paths.get(HipciConf).toFile())
-    pw.write(config.toString())
+    pw.write(config.root().render(renderOpts))
     pw.close()
   }
 
   override def receive = {
     case CreateTestConfiguration(config) => sender ! fromConfig(config)
     case LoadAppConfiguration(config) => sender ! loadAppConfig(config)
-    case CreateAppConfigurationInteractively => createAppConfigurationInteractively()
+    case CreateAppConfigurationInteractively => sender ! createAppConfigurationInteractively()
     case other => super.receive(other)
   }
 }

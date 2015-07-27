@@ -19,50 +19,50 @@ class CommandParserSpec extends FlatSpec {
 
   "CommandParser" should "parse hipci run app.conf" in {
     whenReady(subject ? ParseArguments(Seq("run", "app.conf"))) {
-      _ shouldEqual ParsedArguments(RunCommand("app.conf", List()))
+      _ shouldEqual (RunCommand("app.conf", List()))
     }
   }
 
   it should "parse hipci run app.conf arg1 arg2" in {
     whenReady(subject ? ParseArguments(Seq("run", "app.conf", "arg1", "arg2"))) {
-      _ shouldEqual ParsedArguments(RunCommand("app.conf", List("arg2", "arg1")))
+      _ shouldEqual (RunCommand("app.conf", List("arg2", "arg1")))
     }
   }
 
   it should "parse hipci diff rev1 rev2" in {
     whenReady(subject ? ParseArguments(Seq("diff", "app.conf", "rev1",
       "rev2"))) {
-      _ shouldEqual ParsedArguments(DiffCommand("app.conf", List("rev2", "rev1")))
+      _ shouldEqual (DiffCommand("app.conf", List("rev2", "rev1")))
     }
   }
 
   it should "parse hipci help" in {
     whenReady(subject ? ParseArguments(Seq("help"))) {
-      _ shouldEqual ParsedArguments(HelpCommand())
+      _ shouldEqual (HelpCommand)
     }
   }
 
   it should "parse hipci start" in {
     whenReady(subject ? ParseArguments(Seq("start"))) {
-      _ shouldEqual ParsedArguments(StartCommand())
+      _ shouldEqual (StartCommand)
     }
   }
 
   it should "parse hipci stop" in {
     whenReady(subject ? ParseArguments(Seq("stop"))) {
-      _ shouldEqual ParsedArguments(StopCommand())
+      _ shouldEqual (StopCommand)
     }
   }
 
   it should "fail to parse hipci run" in {
     whenReady(subject ? ParseArguments(Seq("run"))) {
-      _ shouldEqual ParsedArguments(EmptyCommand())
+      _ shouldEqual (EmptyCommand)
     }
   }
 
   it should "fail to parse hipci diff rev1" in {
     whenReady(subject ? ParseArguments(Seq("diff", "rev1"))) {
-      _ shouldEqual ParsedArguments(EmptyCommand())
+      _ shouldEqual (EmptyCommand)
     }
   }
 }
