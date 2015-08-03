@@ -61,7 +61,7 @@ class ConfigurationFactorySpec extends FlatSpec {
       """
         | infinity = [
         |   [test.ss, -arg, --arg2, foo.SUCCESS, bar.FAIL],
-        |   [test.slk, VALID.2, INVALID]
+        |   [test.slk, VALID.2, FAIL]
         | ]
       """.stripMargin)
 

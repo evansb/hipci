@@ -162,7 +162,10 @@ class ConfigurationFactory extends CLIComponent {
     val runQuestion = { (previous: AppConfiguration, question: Question) =>
       Console.out.println(question._1.cyan)
       val line = Console.in.readLine()
-      question._2(line, previous)
+      if (line.trim().size > 0)
+        question._2(line, previous)
+      else
+        previous
     }
 
     val runQuestions = { (questions: Seq[Question]) =>

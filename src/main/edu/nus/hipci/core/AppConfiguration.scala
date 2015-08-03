@@ -54,8 +54,8 @@ object AppConfiguration {
     import Fields._
     ConfigFactory.empty()
       .withValue(ProjectDirectory, ConfigValueFactory.fromAnyRef(config.projectDirectory))
-      .withValue(HipDirectory, ConfigValueFactory.fromAnyRef(config.projectDirectory))
-      .withValue(SleekDirectory, ConfigValueFactory.fromAnyRef(config.projectDirectory))
+      .withValue(HipDirectory, ConfigValueFactory.fromAnyRef(config.hipDirectory))
+      .withValue(SleekDirectory, ConfigValueFactory.fromAnyRef(config.sleekDirectory))
       .withValue(DaemonHost, ConfigValueFactory.fromAnyRef(config.daemonHost))
       .withValue(DaemonPort, ConfigValueFactory.fromAnyRef(config.daemonPort))
   }

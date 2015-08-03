@@ -1,8 +1,6 @@
 package edu.nus.hipci
 
-import com.typesafe.config.ConfigFactory
-
-/**
+/*
  * Application-wide constants.
  */
 package object core {
@@ -18,7 +16,7 @@ package object core {
 
   def SleekValid = "VALID"
 
-  def SleekInvalid = "INVALID"
+  def SleekInvalid = "FAIL"
 
   val HipOutputRegex =
     """Procedure\s(\w*)\$\S*\s(\w*).*$""".r
