@@ -38,6 +38,7 @@ class CommandParser extends CLIComponent {
     val configFile =
       arg[String]("config_file") text("Test configuration file") required() action {
         (cf, previous) => previous match {
+          case DiffCommand(_, revs) => DiffCommand(cf, revs)
           case RunCommand(_, as) => RunCommand(cf, as)
           case _ => EmptyCommand
         }
@@ -46,7 +47,7 @@ class CommandParser extends CLIComponent {
     val configFile2 =
       arg[String]("config_file") text("Test configuration file") required() action {
         (cf, previous) => previous match {
-          case RunCommand(_, as) => RunCommand(cf, as)
+          case DiffCommand(_, revs) => DiffCommand(cf, revs)
           case _ => EmptyCommand
         }
       }
