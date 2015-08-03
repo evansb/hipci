@@ -1,5 +1,6 @@
 package edu.nus.hipci.daemon
 
+import java.io.{File, ByteArrayOutputStream}
 import java.nio.file.{Paths, Path}
 import scala.util._
 import scala.concurrent.duration._
@@ -7,6 +8,7 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise, ExecutionContext, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.sys.process.Process
+import scala.concurrent._
 import akka.actor.ActorRef
 import akka.pattern._
 import edu.nus.hipci.core._
@@ -26,6 +28,42 @@ class TestExecutor extends Component {
   type T = GenTest
 
   protected val descriptor = TestExecutor
+
+  private def runCommand(cmd: Seq[String], workingDir: File) = {
+    val out = new ByteArrayOutputStream
+    val process = (Process(cmd, workingDir) #> out).run()
+    try {
+      val future = Future(blocking(process.exitValue()))
+      val exitValue = Await.result(future, 100.seconds)
+      out.close()
+      (exitValue, out.toString, "")
+    } catch {
+      case e:Throwable =>
+        process.destroy()
+        (1,"","")
+    }
+  }
+
+  private def prepareRepository(config: TestConfiguration) = {
+    val app = AppConfiguration.global
+    val revision = config.testID.split("@")(0)
+    val repo = Paths.get(app.projectDirectory).toFile
+    runCommand(Seq("hg", "update", revision), repo) match {
+      case (0, out, _) =>
+        logger good s"Updated to revision $revision..."
+        logger good s"Running make..."
+        runCommand(Seq("make"), repo) match {
+          case (0, _, _) =>
+            logger good s"Make OK..."
+            None
+          case (1, _, cerr) =>
+            logger bad s"Compile error:"
+            logger bad cerr
+            Some(CompilationError(cerr))
+        }
+      case (_, _, err) => Some(RuntimeError(err))
+    }
+  }
 
   private def parseOutput(output:String, base: T): T = {
     val parser = loadComponent(OutputParser)
@@ -77,27 +115,33 @@ class TestExecutor extends Component {
     val app = AppConfiguration.global
     val timeout = 10000
     val promise = Promise[TestResult]()
-    val init = Future { Map.empty[String, Set[GenTest]] }
-    config.tests.foldLeft(init)({ (acc, entry) =>
-      val name = entry._1
-      val pool = entry._2
-      acc map {
-        case m =>
-          val baseDir = Paths.get(app.projectDirectory)
-          val hipDir = Paths.get(app.hipDirectory)
-          val sleekDir = Paths.get(app.sleekDirectory)
-          val result = Await.result(executeSingleSuite(baseDir, hipDir, sleekDir,
-            name, pool, timeout.millis), (timeout * pool.size).millis)
-          m + ((name, result))
+    val init = Future {
+      prepareRepository(config) match {
+        case Some(error) => promise.success(error)
+        case None =>
+          val initial = Future { Map.empty[String, Set[GenTest]] }
+          config.tests.foldLeft(initial)({ (acc, entry) =>
+            val name = entry._1
+            val pool = entry._2
+            acc map {
+              case m =>
+                val baseDir = Paths.get(app.projectDirectory)
+                val hipDir = Paths.get(app.hipDirectory)
+                val sleekDir = Paths.get(app.sleekDirectory)
+                val result = Await.result(executeSingleSuite(baseDir, hipDir, sleekDir,
+                  name, pool, timeout.millis), (timeout * pool.size).millis)
+                m + ((name, result))
+            }
+          }).andThen({
+            case Success(pool) =>
+              logger.good(s"Test ${config.testID} finished")
+              promise.success(TestComplete(config.copy(tests = pool)))
+            case Failure(exc) =>
+              logger.bad(s"Test ${config.testID} failed")
+              promise.failure(exc)
+          })
       }
-    }).andThen({
-      case Success(pool) =>
-        logger.good(s"Test ${config.testID} finished")
-        promise.success(TestComplete(config.copy(tests = pool)))
-      case Failure(exc) =>
-        logger.bad(s"Test ${config.testID} failed")
-        promise.failure(exc)
-    })
+    }
     promise
   }
 
