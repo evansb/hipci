@@ -67,8 +67,6 @@ class TestReporter extends CLIComponent {
   private def suiteTestDiff(suite: String, configs: List[TestConfiguration],
                              onlyDiff: Boolean) = {
     val tableString = StringBuilder.newBuilder
-    tableString ++= s"--**-[${ suite.bold.cyan }]-**--\n"
-
     val testIDs = configs.map(_.testID)
 
     val specString = (path: String, b: Boolean) =>
@@ -86,7 +84,6 @@ class TestReporter extends CLIComponent {
       })
     }).groupBy(_._1._2).foreach({ (u) =>
       val path = u._1
-      tableString ++= s"File ${ path.bold.magenta.underlined }\n"
       val body =
         u._2.groupBy(_._1._3).foldRight(List.empty[List[String]])({ (u, acc) =>
           val proc = u._1
@@ -99,19 +96,28 @@ class TestReporter extends CLIComponent {
         })
       if (!onlyDiff) {
         var table = body
+        tableString ++= s"\nFile ${ path.bold.magenta.underlined }\n"
         table = header("proc", configs) :: table.sortBy(_.head)
         tableString ++= Tabulator.format(table, coloring)
         tableString ++= "\n"
       } else {
-        var table = body.filter(s => s.tail.toSet.size == 1)
+        var table = body.filter(s => s.tail.toSet.size != 1)
         if (table.nonEmpty) {
+          tableString ++= s"\nFile ${ path.bold.magenta.underlined } "
+          tableString ++= "differ".red
+          tableString ++= "\n"
           table = header("proc", configs) :: table.sortBy(_.head)
           tableString ++= Tabulator.format(table, coloring)
           tableString ++= "\n"
         }
       }
     })
-    tableString.toString()
+    val table = tableString.toString()
+    if (!table.isEmpty) {
+      s"--**-[${ suite.bold.cyan }]-**--" + table
+    } else {
+      table
+    }
   }
 
   private def suiteDiff(suite: String, configs: List[TestConfiguration]) = {

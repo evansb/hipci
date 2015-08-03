@@ -32,7 +32,7 @@ class CommandParserSpec extends FlatSpec {
   it should "parse hipci diff rev1 rev2" in {
     whenReady(subject ? ParseArguments(Seq("diff", "app.conf", "rev1",
       "rev2"))) {
-      _ shouldEqual (DiffCommand("app.conf", List("rev2", "rev1")))
+      _ shouldEqual (DiffCommand("app.conf", List("rev1", "rev2")))
     }
   }
 

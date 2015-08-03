@@ -65,7 +65,7 @@ class ConfigurationFactory extends CLIComponent {
   protected def fromConfig(config: Config): Try[TestConfiguration] = {
     try {
       val tests = collectTestsFromConfig(config)
-      val testID = computeTestID("foo", config)
+      val testID = computeTestID(AppConfiguration.global.projectDirectory, config)
       Success(TestConfiguration(testID, tests))
     } catch {
       case e:InvalidHipSpec => Failure(e)

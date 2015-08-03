@@ -36,17 +36,21 @@ class Main extends CLIComponent {
       val command = Await.result(commandParser? request, timeout.duration)
 
       command match {
-        case InitCommand | EmptyCommand | HelpCommand => commandDispatcher ! command
+        case InitCommand | EmptyCommand | HelpCommand =>
+          Await.result(commandDispatcher ? command, timeout.duration) match {
+            case Terminate(ec) => System.exit(ec)
+            case KeepAlive => ()
+          }
         case _ => if (hipciConf.exists()) {
-          commandDispatcher ? command
+          Await.result(commandDispatcher ? command, timeout.duration) match {
+            case Terminate(ec) => System.exit(ec)
+            case KeepAlive => ()
+          }
         } else {
           logger bad s"File $HipciConf not found. Run hipci init to generate one"
           System.exit(1)
         }
       }
-    case Terminate(ec) => System.exit(ec)
-    case KeepAlive => ()
-    case () => ()
     case other => super.receive(other)
   }
 }

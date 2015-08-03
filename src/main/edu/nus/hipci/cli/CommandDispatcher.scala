@@ -111,21 +111,20 @@ class CommandDispatcher extends CLIComponent {
       val configHash = ConfigurationFactory.computeConfigSHA(config)
 
       // From the repository, get the list of absolute revision hashes
-      val key = AppConfiguration.Fields.ProjectDirectory
-      val repoDir = Paths.get(config.getString(key))
+      val repoDir = Paths.get(AppConfiguration.global.projectDirectory)
       if (repoDir.toFile == null) throw FileNotFound(repoDir.toString)
       val future1 = hg ? GetRevisionHash(repoDir, revisions)
       val revisionHashes = Await.result(future1, timeout.duration)
-        .asInstanceOf[List[String]]
+        .asInstanceOf[RevisionHash]
 
       // Fetch the test results from the Daemon.
       val testResults = Daemon.get(context).map({ (daemon) =>
-        revisionHashes.map({ (hash) =>
+        revisionHashes.hashes.map({ (hash) =>
           val testID = s"$hash@$configHash"
           Await.result(daemon ? CheckTicket(testID), timeout.duration)
+            .asInstanceOf[TestResult]
         })
       }).getOrElse(throw new DaemonNotFound)
-        .asInstanceOf[List[TestResult]]
 
       // Split into completed and incomplete tests
       val init = (List.empty[TestConfiguration], List.empty[String])
@@ -139,7 +138,7 @@ class CommandDispatcher extends CLIComponent {
         })
 
       // Warn the user for incomplete tests
-      if (incompleteTests.isEmpty) {
+      if (!incompleteTests.isEmpty) {
         logger bad "These following revisions has not done the test:\n"
         incompleteTests.foreach { (ticket) =>
           logger bad s"${ ticket.split("@")(0)}\n"
@@ -147,9 +146,11 @@ class CommandDispatcher extends CLIComponent {
       }
 
       // Get the test report and print it
-      val future2 = reporter ? ReportTestResult(completedTests, diffOnly = true)
-      val report = Await.result(future2, timeout.duration)
-      Console.out.println(report)
+      if (!completedTests.isEmpty) {
+        val future2 = reporter ? ReportTestResult(completedTests, diffOnly = true)
+        val report = Await.result(future2, timeout.duration)
+        Console.out.println(report)
+      }
       Terminate(0)
     }
   }

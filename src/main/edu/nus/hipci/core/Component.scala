@@ -64,10 +64,10 @@ abstract class Component extends Actor with ActorLogging {
     descriptor.actors(component.name)
 
   /**
-   * Default timeout for a sub commands (10 seconds)
+   * Default timeout for a sub commands (30 seconds)
    * Please override this field if the component is expected to take shorter to finish
    */
-  implicit val timeout = Timeout(10.seconds)
+  implicit val timeout = Timeout(30.seconds)
 
   /** Default receive behaviour is ignore all messages */
   override def receive = {

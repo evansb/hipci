@@ -60,9 +60,9 @@ class CommandParser extends CLIComponent {
         }
       }
 
-    val revisions = arg[String]("revision") required() unbounded() action {
+    val revisions = arg[String]("revision") text("List of revision to check") required() unbounded() action {
       (revision, previous) => previous match {
-        case DiffCommand(cf, rs) => DiffCommand(cf, revision::rs)
+        case DiffCommand(cf, rs) => DiffCommand(cf, rs ++ List(revision))
         case _ => EmptyCommand
       }
     }
