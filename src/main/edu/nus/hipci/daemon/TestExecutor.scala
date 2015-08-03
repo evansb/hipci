@@ -52,7 +52,10 @@ class TestExecutor extends Component {
     val sysPath = baseDir.toAbsolutePath.toString + ":" + sys.env("PATH")
     logger.good(s"Suite $name")
     pool.foreach((t) => {
-      val path = (if (t.kind.equals("hip")) { hipDir } else { sleekDir }).resolve(Paths.get(name, t.path))
+      val path =
+        Paths.get(".")
+          .resolve(if (t.kind.equals("hip")) { hipDir } else { sleekDir })
+          .resolve(Paths.get(name, t.path))
       val command = baseDir.resolve(t.kind).toAbsolutePath.toString
       val cmd = Seq(command) ++ t.arguments.map(_.toString) ++ Seq(path.toString)
       logger.good(cmd mkString " ")

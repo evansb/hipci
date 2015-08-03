@@ -9,6 +9,7 @@ import akka.util.Timeout
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.concurrent.ScalaFutures._
+import sorm._
 
 import edu.nus.hipci.core._
 
@@ -18,7 +19,12 @@ import edu.nus.hipci.core._
  * @author Evan Sebastian <evanlhoini@gmail.com>
  */
 class DaemonSpec extends FlatSpec {
-  new Thread(new Main()).start()
+  object mockDatabase extends Instance(
+    entities = Set(Entity[DbEntity]()),
+    url = "jdbc:h2:mem:hipci",
+    initMode = InitMode.Create,
+    poolSize = 20)
+  new Thread(new Main(mockDatabase)).start()
 
   val system = ActorSystem("hipci-test", AppConfiguration.getClientConfig())
   val daemon = system.actorSelection("akka.tcp://hipci@127.0.0.1:2552/user/Daemon")

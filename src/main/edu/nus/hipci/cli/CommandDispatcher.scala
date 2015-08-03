@@ -160,7 +160,7 @@ class CommandDispatcher extends CLIComponent {
       Daemon.get(context) map { (d) =>
         logger good "Daemon is already running"
       } getOrElse {
-        val daemonThread = new Thread(new DaemonMain())
+        val daemonThread = new Thread(new DaemonMain(DaemonMain.defaultDatabase))
         daemonThread.start()
       }
       KeepAlive
